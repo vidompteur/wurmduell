@@ -1,0 +1,95 @@
+import type { WeaponId } from "../types";
+import type { WeaponDef } from "./Weapon";
+
+export const WEAPONS: Record<WeaponId, WeaponDef> = {
+  bazooka: {
+    id: "bazooka",
+    name: "Bazooka",
+    key: "1",
+    kind: "projectile",
+    aimable: true,
+    chargeable: true,
+    maxSpeed: 1150,
+    minSpeedFraction: 0.08,
+    explosionRadius: 42,
+    maxDamage: 50,
+    knockback: 380,
+    shotsPerTurn: 1,
+    ammo: null,
+    countsAsShot: true,
+  },
+  grenade: {
+    id: "grenade",
+    name: "Granate",
+    key: "2",
+    kind: "projectile",
+    aimable: true,
+    chargeable: true,
+    maxSpeed: 850,
+    minSpeedFraction: 0.08,
+    explosionRadius: 46,
+    maxDamage: 45,
+    knockback: 400,
+    fuse: 3,
+    shotsPerTurn: 1,
+    ammo: null,
+    countsAsShot: true,
+  },
+  dynamite: {
+    id: "dynamite",
+    name: "Dynamit",
+    key: "3",
+    kind: "projectile",
+    aimable: false,
+    chargeable: false,
+    maxSpeed: 0,
+    minSpeedFraction: 0,
+    explosionRadius: 92,
+    maxDamage: 80,
+    knockback: 560,
+    fuse: 5,
+    shotsPerTurn: 1,
+    ammo: 3,
+    countsAsShot: true,
+  },
+  shotgun: {
+    id: "shotgun",
+    name: "Shotgun",
+    key: "4",
+    kind: "hitscan",
+    aimable: true,
+    chargeable: false,
+    maxSpeed: 0,
+    minSpeedFraction: 0,
+    explosionRadius: 10,
+    maxDamage: 25,
+    knockback: 170,
+    shotsPerTurn: 2,
+    ammo: null,
+    countsAsShot: true,
+  },
+  teleport: {
+    id: "teleport",
+    name: "Teleport",
+    key: "5",
+    kind: "utility",
+    aimable: false,
+    chargeable: false,
+    maxSpeed: 0,
+    minSpeedFraction: 0,
+    explosionRadius: 0,
+    maxDamage: 0,
+    knockback: 0,
+    shotsPerTurn: 1,
+    ammo: 2,
+    countsAsShot: false,
+  },
+};
+
+export const WEAPON_ORDER: readonly WeaponId[] = ["bazooka", "grenade", "dynamite", "shotgun", "teleport"];
+
+/** Zielentfernung und Streuung der Shotgun. */
+export const SHOTGUN_RANGE = 720;
+export const SHOTGUN_SPREAD_DEG = 1.6;
+export const SHOTGUN_HIT_DAMAGE = 25;
+export const SHOTGUN_CRATER = 9;
