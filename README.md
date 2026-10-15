@@ -26,44 +26,12 @@ Wenn beide Befehle Versionsnummern ausgeben, kannst du direkt mit dem Projekt st
 
 ## Node.js und npm installieren
 
-### Linux mit nvm — empfohlen
+### Mac
 
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+brew install node
 ```
-
-Terminal schließen und neu öffnen, dann:
-
-```bash
-nvm install --lts
-nvm use --lts
-```
-
-Prüfen:
-
-```bash
-node -v
-npm -v
-```
-
-nvm installiert Node.js und npm und ermöglicht es, mehrere Node-Versionen parallel zu verwalten. Die LTS-Version ist für dieses Projekt die richtige Wahl.
-
-### Debian/Ubuntu ohne nvm
-
-```bash
-sudo apt update
-sudo apt install -y nodejs npm
-```
-
-Prüfen:
-
-```bash
-node -v
-npm -v
-```
-
-Auf Debian/Ubuntu kann npm als separates Paket erforderlich sein; NodeSource-Installationen bringen npm in der Regel bereits mit. [github](https://github.com/linode/docs/blob/develop/docs/guides/development/nodejs/how-to-install-nodejs/index.md)
-
+ 
 ### Windows
 
 Am einfachsten:
@@ -78,11 +46,8 @@ node -v
 npm -v
 ```
 
-Für eine Linux-ähnliche Entwicklungsumgebung unter Windows ist WSL2 mit Ubuntu eine gute Alternative; dort kannst du denselben nvm-Workflow verwenden. [learn.microsoft](https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl)
-
 ## Projekt einrichten
 
-Wenn du das Shell-Script bereits verwendet hast:
 git clone dieses Projekt
 
 ## Lokal entwickeln
