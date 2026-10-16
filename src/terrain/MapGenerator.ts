@@ -106,17 +106,17 @@ export function generateMap(seed: string, options: MapOptions = {}): GeneratedMa
     }
   }
 
-  return { terrain, spawnPoints: pickSpawns(terrain, rng, minSpawns), seed };
+  return { terrain, spawnPoints: pickSpawns(terrain, heights, rng, minSpawns), seed };
 }
 
 /** Wählt Startpunkte auf flachem Land, gleichmäßig über die Breite verteilt. */
-function pickSpawns(terrain: Terrain, rng: Rng, count: number): Vec2[] {
+function pickSpawns(terrain: Terrain, heights: Float32Array, rng: Rng, count: number): Vec2[] {
   const { width } = terrain;
   const margin = 110;
   const minGap = 110;
   const candidates: Vec2[] = [];
   for (let x = margin; x < width - margin; x += 6) {
-    const y = findStandableY(terrain, x);
+    const y = findStandableY(terrain, x, heights[x]!);
     if (y !== null) candidates.push({ x, y });
   }
 
@@ -145,15 +145,19 @@ function pickSpawns(terrain: Terrain, rng: Rng, count: number): Vec2[] {
   return shuffle(rng, chosen);
 }
 
-/** Oberste Stelle mit freiem Himmel darüber, flach und weit genug über dem Wasser. */
-function findStandableY(terrain: Terrain, x: number): number | null {
-  const y = terrain.findSurfaceY(x);
+/**
+ * Oberfläche des eigentlichen Landes (nicht der schwebenden Inselchen): Die Suche
+ * beginnt knapp über dem Höhenprofil. Verlangt freien Himmel, flachen Boden und
+ * ausreichend Abstand zum Wasser.
+ */
+function findStandableY(terrain: Terrain, x: number, groundTop: number): number | null {
+  const y = terrain.findSurfaceY(x, Math.max(0, groundTop - 30));
   if (y <= 20 || y > DROWN_Y - 90 || y >= WORLD_H) return null;
   // Freiraum über dem Wurm
   for (let k = 1; k <= 24; k++) if (terrain.isSolid(x, y - k)) return null;
   // flach genug
-  const l = terrain.findSurfaceY(x - 8);
-  const r = terrain.findSurfaceY(x + 8);
+  const l = terrain.findSurfaceY(x - 8, y - 40);
+  const r = terrain.findSurfaceY(x + 8, y - 40);
   if (l < 0 || r < 0 || Math.abs(l - y) > 8 || Math.abs(r - y) > 8) return null;
   return y - 1;
 }
