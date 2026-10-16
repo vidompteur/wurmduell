@@ -223,7 +223,7 @@ export class Renderer {
     const px = (camera.x / WORLD_W - 0.5) * -60;
     ctx.fillStyle = "rgba(255,244,200,0.9)";
     ctx.beginPath();
-    ctx.arc(w * 0.78 + px, h * 0.2, Math.max(30, h * 0.07), 0, Math.PI * 2);
+    ctx.arc(w * 0.78 + px, h * 0.2, Math.max(24, Math.min(w, h) * 0.07), 0, Math.PI * 2);
     ctx.fill();
     for (let layer = 0; layer < 2; layer++) {
       ctx.fillStyle = layer === 0 ? "rgba(70,110,150,0.35)" : "rgba(50,90,110,0.45)";

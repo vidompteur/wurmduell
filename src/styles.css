@@ -96,7 +96,7 @@ p {
 }
 
 .panel.wide {
-  width: min(860px, 100%);
+  width: min(980px, 100%);
 }
 
 .panel.menu {
@@ -281,9 +281,23 @@ input[type="checkbox"] {
 
 .table th,
 .table td {
-  padding: 10px 12px;
+  padding: 10px 10px;
   text-align: left;
   white-space: nowrap;
+}
+
+.table th {
+  white-space: normal;
+  vertical-align: bottom;
+}
+
+.result .table th:not(:first-child) {
+  text-align: right;
+}
+
+/* Rangliste: Zahlenspalten samt Kopf rechtsbündig, nur der Name linksbündig. */
+.ladder-body .table th:not(:nth-child(2)) {
+  text-align: right;
 }
 
 .table thead th {
@@ -684,7 +698,8 @@ input[type="checkbox"] {
   }
 
   .wind {
-    top: 150px;
+    top: auto;
+    bottom: 128px;
   }
 
   .slot {
