@@ -40,7 +40,12 @@ export function h<K extends keyof HTMLElementTagNameMap>(
     if (key.startsWith("on") && typeof value === "function") {
       el.addEventListener(key.slice(2), value as EventListener);
     } else if (key in el) {
-      (el as unknown as Record<string, unknown>)[key] = value;
+      try {
+        (el as unknown as Record<string, unknown>)[key] = value;
+      } catch {
+        // Nur lesbare Properties (z. B. `input.list`) laufen über das Attribut.
+        el.setAttribute(key, String(value));
+      }
     } else {
       el.setAttribute(key, String(value));
     }
