@@ -17,6 +17,8 @@ Rundenbasiertes Artillerie-Spiel für zwei Teams (2–3 Würmer pro Team): im Ho
 | Mittel-/Rechtsklick ziehen | Kamera verschieben |
 | `Esc` | Pause (Fortsetzen, Aufgeben, Zurück zum Menü; beides zählt als Niederlage) |
 
+Verlässt du eine laufende Partie (Browser oder Tab schließen, Seite neu laden), wird sie gewertet: Es verliert das Team mit weniger Rest-Lebenspunkten, bei Gleichstand das Team, das geht. „Zurück zum Menü“ zählt immer als Niederlage.
+
 Im Spiel blendet oben links eine dezente Legende diese Tasten ein.
 
 ## Einstellungen

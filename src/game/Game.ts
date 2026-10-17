@@ -191,6 +191,19 @@ export class Game {
     this.endMatch(1 - team, "surrender");
   }
 
+  /**
+   * Die Partie wird abgebrochen (z. B. Browser geschlossen). Es verliert das Team mit
+   * weniger Rest-Lebenspunkten; bei Gleichstand das Team, das die Partie verlassen hat.
+   */
+  abandon(leaverTeam: number): void {
+    if (this.over) return;
+    const hp = (team: number): number => this.aliveWorms(team).reduce((sum, w) => sum + w.hp, 0);
+    const a = hp(0);
+    const b = hp(1);
+    const loser = a === b ? leaverTeam : a < b ? 0 : 1;
+    this.endMatch(1 - loser, "surrender");
+  }
+
   // ------------------------------------------------------------------ Tick
 
   /** Ein fester Simulationsschritt. */

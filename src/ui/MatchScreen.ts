@@ -181,6 +181,15 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
 
   const loop = new GameLoop(update, render);
 
+  // Browser/Tab geschlossen oder Seite neu geladen: Partie wird gewertet.
+  // pagehide ist dafür zuverlässiger als beforeunload; localStorage schreibt synchron.
+  const onPageHide = (): void => {
+    if (game.over || disposed) return;
+    leaving = true;
+    game.abandon(humanTeam());
+  };
+  window.addEventListener("pagehide", onPageHide);
+
   const onResize = (): void => renderer.resize();
   window.addEventListener("resize", onResize);
   renderer.resize();
@@ -199,6 +208,7 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
       loop.stop();
       input.dispose();
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("pagehide", onPageHide);
       hud.dispose();
       pauseOverlay?.remove();
       game.terrain.dispose();

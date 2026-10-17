@@ -182,6 +182,20 @@ describe("Spielregeln", () => {
     expect(parts.find((p) => p.playerId === "p_blau")!.outcome).toBe("win");
   });
 
+  it("Abbruch lässt das Team mit weniger Rest-Lebenspunkten verlieren", () => {
+    const { game } = makeGame();
+    for (const w of game.worms) if (w.team === 0) w.hp = 30;
+    game.abandon(1); // Blau verlässt die Partie, liegt aber vorn
+    expect(game.result!.winner).toBe(1);
+    expect(game.result!.reason).toBe("surrender");
+  });
+
+  it("Abbruch bei Gleichstand wertet das verlassende Team als Verlierer", () => {
+    const { game } = makeGame();
+    game.abandon(1);
+    expect(game.result!.winner).toBe(0);
+  });
+
   it("Teleport setzt den Wurm auf freie Fläche und verbraucht Munition", () => {
     const { game } = makeGame();
     const team = game.activeTeam;
