@@ -22,7 +22,7 @@ export interface MatchScreenOptions {
   showLegend: boolean;
   /** Partie regulär beendet (Ergebnis ist bereits in der Ladder gespeichert). */
   onFinish(result: MatchResult): void;
-  /** Spieler verlässt die Partie ohne Wertung. */
+  /** Spieler verlässt die Partie (zählt als Aufgabe; Ergebnis ist bereits in der Ladder). */
   onExit(): void;
 }
 
@@ -49,6 +49,8 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
   let hud: Hud;
   let finishTimer = 0;
   let disposed = false;
+  /** Spieler verlässt die Partie: Aufgabe wird gewertet, aber kein Ergebnisbildschirm gezeigt. */
+  let leaving = false;
 
   const onEvent = (e: GameEvent): void => {
     renderer?.handleEvent(e);
@@ -57,6 +59,7 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
     if (e.type === "matchEnd") {
       // Ladder sofort speichern, danach kurz das Ergebnis wirken lassen.
       opts.store.recordResult(e.result);
+      if (leaving) return;
       const winner = e.result.winner === null ? "Unentschieden!" : `${e.result.teams[e.result.winner]!.name} gewinnt!`;
       hud?.showBanner(winner, e.result.winner ?? -1, 3000);
       finishTimer = window.setTimeout(() => {
@@ -144,7 +147,12 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
             type: "button",
             text: "Zurück zum Menü",
             onclick: () =>
-              void ask("Zurück zum Menü? Die Partie wird nicht gewertet.", "Zum Menü", () => opts.onExit()),
+              void ask("Zurück zum Menü? Die Partie zählt als Niederlage.", "Zum Menü", () => {
+                // Wie Aufgeben: der aktive Mensch verliert, danach direkt ins Menü.
+                leaving = true;
+                game.surrender(humanTeam());
+                opts.onExit();
+              }),
           }),
         ),
       ),

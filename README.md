@@ -15,7 +15,7 @@ Rundenbasiertes Artillerie-Spiel für zwei Teams (2–3 Würmer pro Team): im Ho
 | `1`–`5` | Waffe wählen (Bazooka, Granate, Dynamit, Shotgun, Teleport; beim Teleport danach auf die Karte klicken) |
 | Mausrad oder `+` `−` | zoomen |
 | Mittel-/Rechtsklick ziehen | Kamera verschieben |
-| `Esc` | Pause (Fortsetzen, Aufgeben, Zurück zum Menü) |
+| `Esc` | Pause (Fortsetzen, Aufgeben, Zurück zum Menü; beides zählt als Niederlage) |
 
 Im Spiel blendet oben links eine dezente Legende diese Tasten ein.
 
