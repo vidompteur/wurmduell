@@ -85,6 +85,8 @@ export interface Settings {
   volume: number;
   /** Ansichtsgröße beim Spielstart (Bildschirm-Pixel pro Welt-Pixel). */
   zoom: number;
+  /** Steuerungs-Legende im Spiel anzeigen. */
+  showLegend: boolean;
   lastSetup: {
     mode: MatchMode;
     aiLevel: AiLevel;

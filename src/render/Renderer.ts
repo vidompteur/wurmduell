@@ -1,3 +1,4 @@
+import { CONFIG } from "../config";
 import { WATER_Y, WORLD_H, WORLD_W } from "../game/constants";
 import type { Game } from "../game/Game";
 import type { GameEvent } from "../game/GameState";
@@ -68,7 +69,7 @@ export class Renderer {
 
   /** Passt die Canvas-Auflösung an die Anzeigegröße an. */
   resize(): void {
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const dpr = Math.min(CONFIG.view.maxDpr, window.devicePixelRatio || 1);
     this.dpr = dpr;
     this.camera.maxZoom = 4 * dpr;
     const w = Math.max(1, Math.round(this.canvas.clientWidth * dpr));

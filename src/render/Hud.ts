@@ -6,6 +6,7 @@ import { WEAPONS, WEAPON_ORDER } from "../weapons/weapons";
 
 export interface HudCallbacks {
   onSelectWeapon(id: WeaponId): void;
+  showLegend: boolean;
 }
 
 interface TeamChip {
@@ -24,6 +25,21 @@ interface Slot {
  * DOM-Overlay über dem Canvas: Teams, aktiver Wurm, Zugzeit, Wind,
  * Schussstärke und Waffenleiste. Schreibt nur ins DOM, wenn sich Werte ändern.
  */
+const LEGEND: ReadonlyArray<readonly [string, string]> = [
+  ["← →", "laufen"],
+  ["↑ ↓", "zielen"],
+  ["Leertaste", "halten = laden, loslassen = feuern"],
+  ["1–5", "Waffe"],
+  ["+ −", "zoomen"],
+  ["Esc", "Pause"],
+];
+
+function buildLegend(): HTMLElement {
+  const list = h("ul", { class: "legend", title: "Steuerung" });
+  for (const [key, text] of LEGEND) list.append(h("li", {}, h("kbd", { text: key }), h("span", { text })));
+  return list;
+}
+
 export class Hud {
   readonly root: HTMLElement;
   private readonly teams: TeamChip[];
@@ -105,6 +121,7 @@ export class Hud {
       this.power,
       weapons,
     );
+    if (callbacks.showLegend) this.root.append(buildLegend());
     parent.append(this.root);
     this.teams.forEach((t, i) => (t.name.textContent = game.teams[i]!.name));
   }

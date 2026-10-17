@@ -1,19 +1,21 @@
+import { CONFIG } from "../config";
 import type { Settings } from "../types";
 
 export const SETTINGS_KEY = "wurmduell.settings.v1";
 
-export const ZOOM_MIN = 1;
-export const ZOOM_MAX = 3;
+export const ZOOM_MIN = CONFIG.view.zoomMin;
+export const ZOOM_MAX = CONFIG.view.zoomMax;
 
 export const DEFAULT_SETTINGS: Settings = {
-  soundEnabled: true,
-  volume: 0.6,
-  zoom: 1.8,
+  soundEnabled: CONFIG.audio.enabled,
+  volume: CONFIG.audio.volume,
+  zoom: CONFIG.view.zoomDefault,
+  showLegend: CONFIG.hud.showLegend,
   lastSetup: {
-    mode: "vsAi",
-    aiLevel: "normal",
-    wormsPerTeam: 3,
-    names: ["Spieler 1", "Spieler 2"],
+    mode: CONFIG.setup.mode,
+    aiLevel: CONFIG.setup.aiLevel,
+    wormsPerTeam: CONFIG.setup.wormsPerTeam,
+    names: [...CONFIG.setup.names],
   },
 };
 
@@ -27,6 +29,7 @@ export function loadSettings(): Settings {
       soundEnabled: typeof p.soundEnabled === "boolean" ? p.soundEnabled : DEFAULT_SETTINGS.soundEnabled,
       volume: typeof p.volume === "number" ? Math.min(1, Math.max(0, p.volume)) : DEFAULT_SETTINGS.volume,
       zoom: typeof p.zoom === "number" && Number.isFinite(p.zoom) ? Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, p.zoom)) : DEFAULT_SETTINGS.zoom,
+      showLegend: typeof p.showLegend === "boolean" ? p.showLegend : DEFAULT_SETTINGS.showLegend,
       lastSetup: {
         mode: last?.mode === "hotseat" || last?.mode === "vsAi" ? last.mode : DEFAULT_SETTINGS.lastSetup.mode,
         aiLevel:

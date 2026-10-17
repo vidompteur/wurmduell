@@ -1,3 +1,4 @@
+import { CONFIG } from "../config";
 import type { Camera } from "../render/Camera";
 import type { InputState, WeaponId } from "../types";
 
@@ -92,7 +93,7 @@ export class InputController {
       return;
     }
     if (ZOOM_IN.has(ev.code) || ZOOM_OUT.has(ev.code)) {
-      this.camera.zoomAt(this.camera.viewW / 2, this.camera.viewH / 2, ZOOM_IN.has(ev.code) ? 1.15 : 1 / 1.15);
+      this.camera.zoomAt(this.camera.viewW / 2, this.camera.viewH / 2, ZOOM_IN.has(ev.code) ? CONFIG.view.zoomKeyFactor : 1 / CONFIG.view.zoomKeyFactor);
       return;
     }
     const weapon = WEAPON_KEYS[ev.code];

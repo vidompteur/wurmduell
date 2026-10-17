@@ -18,6 +18,8 @@ export interface MatchScreenOptions {
   sound: Sound;
   /** Start-Zoom in Bildschirm-Pixeln pro Welt-Pixel (siehe Einstellungen). */
   zoom: number;
+  /** Steuerungs-Legende einblenden. */
+  showLegend: boolean;
   /** Partie regulär beendet (Ergebnis ist bereits in der Ladder gespeichert). */
   onFinish(result: MatchResult): void;
   /** Spieler verlässt die Partie ohne Wertung. */
@@ -65,7 +67,7 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
 
   const game = new Game({ ...opts.config, seed }, rng, map, onEvent);
   renderer = new Renderer(canvas, game);
-  hud = new Hud(stage, game, { onSelectWeapon: (id) => selectWeapon(id) });
+  hud = new Hud(stage, game, { onSelectWeapon: (id) => selectWeapon(id), showLegend: opts.showLegend });
 
   const bots = game.teams.map((t) => (t.controller.kind === "ai" ? new Bot(t.controller.level, rng) : null));
   const isHumanTurn = (): boolean => game.activeTeam.controller.kind === "human";

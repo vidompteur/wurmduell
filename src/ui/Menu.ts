@@ -1,3 +1,4 @@
+import { CONFIG } from "../config";
 import type { Sound } from "../audio/Sound";
 import type { Settings } from "../types";
 import { clear, h } from "./dom";
@@ -75,13 +76,19 @@ export function renderSettings(root: HTMLElement, settings: Settings, sound: Sou
     type: "range",
     min: String(ZOOM_MIN),
     max: String(ZOOM_MAX),
-    step: "0.2",
+    step: String(CONFIG.view.zoomSliderStep),
     value: String(settings.zoom),
     id: "set-zoom",
   });
   zoom.addEventListener("input", () => {
     settings.zoom = Number(zoom.value);
     zoomValue.textContent = fmtZoom(settings.zoom);
+    saveSettings(settings);
+  });
+
+  const legend = h("input", { type: "checkbox", checked: settings.showLegend, id: "set-legend" });
+  legend.addEventListener("change", () => {
+    settings.showLegend = legend.checked;
     saveSettings(settings);
   });
 
@@ -98,6 +105,7 @@ export function renderSettings(root: HTMLElement, settings: Settings, sound: Sou
         zoomValue,
         h("span", { class: "muted small", text: "Gilt ab dem nächsten Spiel. Im Spiel: Mausrad oder + / −." }),
       ),
+      h("div", { class: "field check" }, legend, h("label", { htmlFor: "set-legend", text: "Steuerungs-Legende im Spiel anzeigen" })),
       h("div", { class: "field check" }, enabled, h("label", { htmlFor: "set-sound", text: "Ton aktiviert" })),
       h("div", { class: "field" }, h("label", { htmlFor: "set-volume", text: "Lautstärke" }), volume, volumeValue),
       h("div", { class: "row" }, h("button", { class: "btn", type: "button", text: "Zurück zum Menü", onclick: onBack })),

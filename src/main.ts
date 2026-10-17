@@ -57,6 +57,7 @@ function toMatch(config: MatchConfig): MatchHandle {
       store,
       sound,
       zoom: settings.zoom,
+      showLegend: settings.showLegend,
       onFinish: (result) => toResult(result, config),
       onExit: toMenu,
     });

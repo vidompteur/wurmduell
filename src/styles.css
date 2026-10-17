@@ -687,6 +687,53 @@ input[type="checkbox"] {
   cursor: not-allowed;
 }
 
+/* Dezente Steuerungs-Legende */
+.legend {
+  position: absolute;
+  left: 12px;
+  top: 82px;
+  margin: 0;
+  padding: 6px 8px;
+  list-style: none;
+  display: grid;
+  gap: 3px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted, #aab3d0);
+  background: rgba(10, 15, 32, 0.35);
+  border-radius: 8px;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.legend:hover {
+  opacity: 0.95;
+}
+
+.legend li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.legend kbd {
+  flex: none;
+  min-width: 2.6em;
+  padding: 0 5px;
+  text-align: center;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  .legend {
+    display: none;
+  }
+}
+
 @media (max-width: 640px) {
   .hud-top {
     grid-template-columns: 1fr 1fr;
