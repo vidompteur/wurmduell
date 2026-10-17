@@ -1,6 +1,10 @@
 import { WORLD_H, WORLD_W } from "../game/constants";
 
-/** Kamera mit Zoom und Verschieben. Alle Bildschirmkoordinaten sind Canvas-Pixel. */
+/**
+ * Kamera mit Zoom und Verschieben. Alle Bildschirmkoordinaten sind Canvas-Pixel;
+ * `zoom` ist Canvas-Pixel pro Welt-Pixel (auf Retina-Displays also doppelt so groß
+ * wie in CSS-Pixeln gedacht – der Aufrufer rechnet die Pixeldichte ein).
+ */
 export class Camera {
   /** Weltpunkt in der Bildmitte. */
   x = WORLD_W / 2;
@@ -8,8 +12,8 @@ export class Camera {
   zoom = 0.8;
   viewW = 1280;
   viewH = 720;
-  /** Maximaler Zoom. */
-  readonly maxZoom = 3;
+  /** Maximaler Zoom (in Canvas-Pixeln pro Welt-Pixel, wird an die Pixeldichte angepasst). */
+  maxZoom = 4;
   private manualUntil = 0;
 
   resize(w: number, h: number): void {

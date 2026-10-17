@@ -83,6 +83,8 @@ export interface Ladder {
 export interface Settings {
   soundEnabled: boolean;
   volume: number;
+  /** Ansichtsgröße beim Spielstart (Bildschirm-Pixel pro Welt-Pixel). */
+  zoom: number;
   lastSetup: {
     mode: MatchMode;
     aiLevel: AiLevel;

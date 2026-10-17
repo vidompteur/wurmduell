@@ -16,6 +16,8 @@ export interface MatchScreenOptions {
   config: MatchConfig;
   store: LadderStore;
   sound: Sound;
+  /** Start-Zoom in Bildschirm-Pixeln pro Welt-Pixel (siehe Einstellungen). */
+  zoom: number;
   /** Partie regulär beendet (Ergebnis ist bereits in der Ladder gespeichert). */
   onFinish(result: MatchResult): void;
   /** Spieler verlässt die Partie ohne Wertung. */
@@ -172,7 +174,8 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
   const onResize = (): void => renderer.resize();
   window.addEventListener("resize", onResize);
   renderer.resize();
-  renderer.camera.zoom = Math.max(renderer.camera.minZoom, 1);
+  // Zoom ist in CSS-Pixeln gemeint: auf Retina-Displays entsprechend mehr Canvas-Pixel.
+  renderer.camera.zoom = Math.max(renderer.camera.minZoom, opts.zoom * renderer.dpr);
   const first = renderer.focusPoint();
   renderer.camera.snapTo(first.x, first.y);
   loop.start();

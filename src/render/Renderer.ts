@@ -54,6 +54,8 @@ export class Renderer {
   private texts: FloatText[] = [];
   private shake = 0;
   private time = 0;
+  /** Canvas-Pixel pro CSS-Pixel (Retina = 2). */
+  dpr = 1;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -67,6 +69,8 @@ export class Renderer {
   /** Passt die Canvas-Auflösung an die Anzeigegröße an. */
   resize(): void {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
+    this.dpr = dpr;
+    this.camera.maxZoom = 4 * dpr;
     const w = Math.max(1, Math.round(this.canvas.clientWidth * dpr));
     const h = Math.max(1, Math.round(this.canvas.clientHeight * dpr));
     if (this.canvas.width !== w || this.canvas.height !== h) {
@@ -479,41 +483,56 @@ export class Renderer {
     }
   }
 
+  /**
+   * Maßstab für Beschriftungen: Name, Lebensbalken, Pfeil und Schadenszahlen bleiben
+   * unabhängig vom Zoom in etwa gleich groß auf dem Bildschirm (nur Würmer und Welt skalieren).
+   */
+  private labelScale(): number {
+    return Math.min(2, Math.max(0.35, this.dpr / this.camera.zoom));
+  }
+
   private drawLabels(): void {
     const { ctx } = this;
+    const k = this.labelScale();
     ctx.textAlign = "center";
     ctx.font = "bold 12px system-ui, sans-serif";
     for (const w of this.game.worms) {
       if (!w.alive) continue;
-      const y = w.y - 30;
-      const name = w.name;
-      const tw = ctx.measureText(name).width;
+      // Anker knapp über dem Kopf; ab hier wird in Bildschirmgröße gezeichnet.
+      ctx.save();
+      ctx.translate(w.x, w.y - 22);
+      ctx.scale(k, k);
+      const tw = ctx.measureText(w.name).width;
       ctx.fillStyle = "rgba(10,14,28,0.65)";
-      ctx.fillRect(w.x - tw / 2 - 4, y - 22, tw + 8, 16);
+      ctx.fillRect(-tw / 2 - 4, -22, tw + 8, 16);
       ctx.fillStyle = TEAM_COLORS[w.team]!;
-      ctx.fillText(name, w.x, y - 10);
+      ctx.fillText(w.name, 0, -10);
       ctx.fillStyle = "rgba(10,14,28,0.75)";
-      ctx.fillRect(w.x - 15, y - 4, 30, 6);
+      ctx.fillRect(-15, -4, 30, 6);
       ctx.fillStyle = w.hp > 50 ? "#69db7c" : w.hp > 25 ? "#ffd43b" : "#ff6b6b";
-      ctx.fillRect(w.x - 14, y - 3, 28 * (w.hp / 100), 4);
+      ctx.fillRect(-14, -3, 28 * (w.hp / 100), 4);
+      ctx.restore();
     }
     // Pfeil über dem aktiven Wurm
     const g = this.game;
     if (g.phase === "turn" || g.phase === "retreat") {
       const w = g.activeWorm;
       if (w.alive) {
-        const bounce = Math.sin(this.time * 6) * 3;
-        const y = w.y - 62 + bounce;
+        const y = -38 + Math.sin(this.time * 6) * 3;
+        ctx.save();
+        ctx.translate(w.x, w.y - 22);
+        ctx.scale(k, k);
         ctx.fillStyle = TEAM_COLORS[w.team]!;
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(w.x, y + 8);
-        ctx.lineTo(w.x - 7, y - 4);
-        ctx.lineTo(w.x + 7, y - 4);
+        ctx.moveTo(0, y + 8);
+        ctx.lineTo(-7, y - 4);
+        ctx.lineTo(7, y - 4);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
       }
     }
   }
@@ -551,9 +570,10 @@ export class Renderer {
     }
   }
 
-  /** Schwebende Texte (Schaden etc.) in Weltkoordinaten. */
+  /** Schwebende Texte (Schaden etc.): Position in Weltkoordinaten, Größe in Bildschirmmaß. */
   private drawTexts(): void {
     const { ctx, camera, canvas } = this;
+    const scale = this.labelScale();
     ctx.save();
     ctx.setTransform(camera.zoom, 0, 0, camera.zoom, canvas.width / 2 - camera.x * camera.zoom, canvas.height / 2 - camera.y * camera.zoom);
     ctx.textAlign = "center";
@@ -564,9 +584,12 @@ export class Renderer {
       ctx.lineWidth = 4;
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
       ctx.fillStyle = t.color;
-      const y = t.y - 40 * k;
-      ctx.strokeText(t.text, t.x, y);
-      ctx.fillText(t.text, t.x, y);
+      ctx.save();
+      ctx.translate(t.x, t.y - 40 * k * scale);
+      ctx.scale(scale, scale);
+      ctx.strokeText(t.text, 0, 0);
+      ctx.fillText(t.text, 0, 0);
+      ctx.restore();
     }
     ctx.restore();
   }

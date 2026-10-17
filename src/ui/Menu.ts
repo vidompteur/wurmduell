@@ -1,7 +1,7 @@
 import type { Sound } from "../audio/Sound";
 import type { Settings } from "../types";
 import { clear, h } from "./dom";
-import { saveSettings } from "./settings";
+import { ZOOM_MAX, ZOOM_MIN, saveSettings } from "./settings";
 
 export interface MenuNav {
   newGame(): void;
@@ -69,11 +69,35 @@ export function renderSettings(root: HTMLElement, settings: Settings, sound: Sou
     sound.uiClick();
   });
 
+  const fmtZoom = (z: number): string => `${z.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}×`;
+  const zoomValue = h("span", { class: "muted", text: fmtZoom(settings.zoom) });
+  const zoom = h("input", {
+    type: "range",
+    min: String(ZOOM_MIN),
+    max: String(ZOOM_MAX),
+    step: "0.2",
+    value: String(settings.zoom),
+    id: "set-zoom",
+  });
+  zoom.addEventListener("input", () => {
+    settings.zoom = Number(zoom.value);
+    zoomValue.textContent = fmtZoom(settings.zoom);
+    saveSettings(settings);
+  });
+
   root.append(
     h(
       "section",
       { class: "panel" },
       h("h2", { text: "Einstellungen" }),
+      h(
+        "div",
+        { class: "field" },
+        h("label", { htmlFor: "set-zoom", text: "Ansichtsgröße (größer = größere Würmer)" }),
+        zoom,
+        zoomValue,
+        h("span", { class: "muted small", text: "Gilt ab dem nächsten Spiel. Im Spiel: Mausrad oder + / −." }),
+      ),
       h("div", { class: "field check" }, enabled, h("label", { htmlFor: "set-sound", text: "Ton aktiviert" })),
       h("div", { class: "field" }, h("label", { htmlFor: "set-volume", text: "Lautstärke" }), volume, volumeValue),
       h("div", { class: "row" }, h("button", { class: "btn", type: "button", text: "Zurück zum Menü", onclick: onBack })),

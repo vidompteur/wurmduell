@@ -21,6 +21,9 @@ const WEAPON_KEYS: Record<string, WeaponId> = {
   Numpad5: "teleport",
 };
 
+const ZOOM_IN = new Set(["Equal", "NumpadAdd", "BracketRight"]);
+const ZOOM_OUT = new Set(["Minus", "NumpadSubtract", "Slash"]);
+
 const PREVENT = new Set(["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 
 /**
@@ -86,6 +89,10 @@ export class InputController {
     if (PREVENT.has(ev.code)) ev.preventDefault();
     if (ev.code === "Escape") {
       if (!ev.repeat) this.callbacks.onPauseToggle();
+      return;
+    }
+    if (ZOOM_IN.has(ev.code) || ZOOM_OUT.has(ev.code)) {
+      this.camera.zoomAt(this.camera.viewW / 2, this.camera.viewH / 2, ZOOM_IN.has(ev.code) ? 1.15 : 1 / 1.15);
       return;
     }
     const weapon = WEAPON_KEYS[ev.code];

@@ -2,9 +2,13 @@ import type { Settings } from "../types";
 
 export const SETTINGS_KEY = "wurmduell.settings.v1";
 
+export const ZOOM_MIN = 1;
+export const ZOOM_MAX = 3;
+
 export const DEFAULT_SETTINGS: Settings = {
   soundEnabled: true,
   volume: 0.6,
+  zoom: 1.8,
   lastSetup: {
     mode: "vsAi",
     aiLevel: "normal",
@@ -22,6 +26,7 @@ export function loadSettings(): Settings {
     return {
       soundEnabled: typeof p.soundEnabled === "boolean" ? p.soundEnabled : DEFAULT_SETTINGS.soundEnabled,
       volume: typeof p.volume === "number" ? Math.min(1, Math.max(0, p.volume)) : DEFAULT_SETTINGS.volume,
+      zoom: typeof p.zoom === "number" && Number.isFinite(p.zoom) ? Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, p.zoom)) : DEFAULT_SETTINGS.zoom,
       lastSetup: {
         mode: last?.mode === "hotseat" || last?.mode === "vsAi" ? last.mode : DEFAULT_SETTINGS.lastSetup.mode,
         aiLevel:

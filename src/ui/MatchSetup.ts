@@ -111,7 +111,8 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
       h("li", { text: "↑ ↓ oder W / S: Winkel einstellen" }),
       h("li", { text: "Leertaste halten: Stärke aufladen, loslassen: feuern" }),
       h("li", { text: "1–5: Waffe wählen (Teleport: danach auf die Karte klicken)" }),
-      h("li", { text: "Mausrad: zoomen · Mittel-/Rechtsklick ziehen: Kamera verschieben" }),
+      h("li", { text: "Mausrad oder + / −: zoomen · Mittel-/Rechtsklick ziehen: Kamera verschieben" }),
+      h("li", { text: "Zu klein? Die Standardgröße stellst du unter Einstellungen ein." }),
       h("li", { text: "ESC: Pause" }),
     ),
   );
