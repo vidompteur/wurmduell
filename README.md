@@ -1,6 +1,62 @@
 # wurmduell
 Ein Spiel wie Worms in dem zwei Würmer gegeneinander kämpfen und aufeinander schießen.
 
+# Spielen
+
+Rundenbasiertes Artillerie-Spiel für zwei Teams (2–3 Würmer pro Team): im Hotseat gegeneinander oder gegen den Computer (Einfach, Normal, Schwer). Das Gelände ist zerstörbar, Wind beeinflusst Bazooka-Schüsse, wer ins Wasser fällt, ertrinkt. Ergebnisse landen in einer lokalen Ladder (im Browser gespeichert).
+
+## Steuerung
+
+| Taste | Aktion |
+|---|---|
+| `←` `→` oder `A` `D` | laufen |
+| `↑` `↓` oder `W` `S` | Winkel einstellen |
+| `Leertaste` halten | Stärke aufladen, loslassen feuert |
+| `1`–`5` | Waffe wählen (Bazooka, Granate, Dynamit, Shotgun, Teleport; beim Teleport danach auf die Karte klicken) |
+| Mausrad oder `+` `−` | zoomen |
+| Mittel-/Rechtsklick ziehen | Kamera verschieben |
+| `Esc` | Pause (Fortsetzen, Aufgeben, Zurück zum Menü) |
+
+Im Spiel blendet oben links eine dezente Legende diese Tasten ein.
+
+## Einstellungen
+
+Unter **Einstellungen** im Hauptmenü (werden im Browser gespeichert):
+
+- **Ansichtsgröße:** Start-Zoom, 1,0× bis 3,0×. Größer heißt größere Würmer. Gilt ab dem nächsten Spiel; im Spiel zoomst du mit Mausrad oder `+` / `−`.
+- **Ton** und **Lautstärke**
+- **Steuerungs-Legende im Spiel anzeigen**
+
+## Standardwerte konfigurieren
+
+Alle Defaults stehen zentral in [`src/config.ts`](src/config.ts):
+
+| Bereich | Werte |
+|---|---|
+| `view` | Standard-Zoom (`zoomDefault`, aktuell 1,4), Zoom-Min/-Max, Reglerschritt, Zoom-Faktor pro Tastendruck, maximale Pixeldichte |
+| `audio` | Ton an/aus, Lautstärke |
+| `hud` | Steuerungs-Legende an/aus |
+| `setup` | Vorbelegung im Match-Setup (Modus, KI-Stärke, Teamgröße, Spielernamen) |
+
+Bereits im Browser gespeicherte Einstellungen haben Vorrang vor diesen Defaults; zum Testen den localStorage-Eintrag `wurmduell.settings.v1` löschen. Regel- und Physikkonstanten (Zugzeit, Schwerkraft, Wurmgröße, Waffenschaden) liegen in `src/game/constants.ts` bzw. `src/weapons/weapons.ts`.
+
+## Projektstruktur
+
+```text
+src/config.ts      Standardwerte (siehe oben)
+src/game/          Spiellogik ohne DOM (Game, TurnManager, Konstanten, RNG)
+src/terrain/       Kartengenerator und zerstörbares Gelände
+src/entities/      Würmer und Projektile
+src/weapons/       Waffendefinitionen und Schadensmodell
+src/ai/            Computergegner (nutzt dieselbe Physik wie das Spiel)
+src/render/        Canvas-Renderer, Kamera, HUD
+src/ui/            Menü, Setup, Match-Bildschirm, Einstellungen
+src/ladder/        lokale Ladder (localStorage)
+tests/             Vitest-Tests (Physik, Spiellogik, Ladder)
+```
+
+Tests laufen mit `npm test`.
+
 # Dev Guide 
 
 Dieses Kapitel erklärt, wie du die Entwicklungsumgebung einrichtest, das Spiel lokal startest und als statische Seite auf wisp.place veröffentlichst. Node.js und npm brauchst du nur auf deinem Entwicklungsrechner; die fertige Seite läuft im Browser und benötigt kein Node auf dem Gerät der Spieler. [docs.npmjs](https://docs.npmjs.com/cli/v11/configuring-npm/install/)
@@ -76,6 +132,7 @@ Beende den Dev-Server mit `Ctrl + C`.
 | `npm run dev` | Entwicklungsserver starten |
 | `npm run build` | Produktions-Build nach `dist/` erzeugen |
 | `npm run preview` | Den fertigen Build lokal testen |
+| `npm test` | Unit-Tests (Vitest) ausführen |
 | `npx wispctl --help` | wisp-CLI ohne globale Installation ausführen |
 
 `npm run build` kompiliert TypeScript und erzeugt die statischen Dateien in `dist/`. Diese Dateien sind später genau das, was wisp.place ausliefert. 
