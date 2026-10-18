@@ -4,7 +4,7 @@ import { clear, h } from "./dom";
 const STATUS_TEXT: Record<AccountView["status"], string> = {
   idle: "",
   syncing: "Synchronisiere …",
-  ok: "Ladder synchronisiert",
+  ok: "Rangliste synchronisiert",
   error: "Sync fehlgeschlagen",
 };
 
@@ -66,7 +66,7 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
           input,
           h("button", { class: "btn", type: "submit", text: "Anmelden" }),
         ),
-        h("p", { class: "muted small", text: "Deine Ladder wird zusätzlich in deinem eigenen PDS gespeichert. Ohne Anmeldung bleibt alles lokal." }),
+        h("p", { class: "muted small", text: "Deine Rangliste wird zusätzlich in deinem eigenen PDS gespeichert. Ohne Anmeldung bleibt alles lokal." }),
       ),
     );
     if (v.error) el.append(h("p", { class: "error", text: v.error }));

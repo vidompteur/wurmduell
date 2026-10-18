@@ -67,23 +67,23 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
   };
 
   const drawGlobal = (): void => {
-    const status = h("p", { class: "muted", text: "Lade globale Ladder …" });
+    const status = h("p", { class: "muted", text: "Lade globale Rangliste …" });
     body.append(status);
     void loadGlobalLadder().then(
       (file) => {
         if (tab !== "global") return;
         status.remove();
         if (file.entries.length === 0) {
-          body.append(h("p", { class: "muted", text: "Die globale Ladder ist noch leer. Sie wird regelmäßig aus den Ladder-Daten angemeldeter Spieler erzeugt." }));
+          body.append(h("p", { class: "muted", text: "Die globale Rangliste ist noch leer. Sie wird regelmäßig aus den Daten angemeldeter Spieler erzeugt." }));
           return;
         }
         body.append(table(file.entries, false));
         const when = file.updatedAt ? new Date(file.updatedAt).toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" }) : "unbekannt";
-        body.append(h("p", { class: "muted small", text: `Stand: ${when} · wird stündlich aus den öffentlichen Ladder-Daten der Spieler aktualisiert.` }));
+        body.append(h("p", { class: "muted small", text: `Stand: ${when} · wird stündlich aus den öffentlichen Daten der Spieler aktualisiert.` }));
       },
       () => {
         if (tab !== "global") return;
-        status.textContent = "Die globale Ladder ist gerade nicht erreichbar.";
+        status.textContent = "Die globale Rangliste ist gerade nicht erreichbar.";
       },
     );
   };
@@ -113,7 +113,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
     });
   const tabs = { local: tabBtn("local", "Lokal"), global: tabBtn("global", "Global") };
   const intro = h("p", { class: "muted" });
-  const resetButton = h("button", { class: "btn btn-danger", type: "button", text: "Ladder zurücksetzen", onclick: () => void reset() });
+  const resetButton = h("button", { class: "btn btn-danger", type: "button", text: "Rangliste zurücksetzen", onclick: () => void reset() });
 
   const rename = async (playerId: string, current: string): Promise<void> => {
     const name = await promptDialog("Neuer Anzeigename (die Spieler-ID bleibt gleich):", current);
@@ -127,7 +127,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
 
   const reset = async (): Promise<void> => {
     const ok = await confirmDialog(
-      "Ladder wirklich zurücksetzen? Alle gespeicherten Siege, Niederlagen und Statistiken gehen verloren.",
+      "Rangliste wirklich zurücksetzen? Alle gespeicherten Siege, Niederlagen und Statistiken gehen verloren.",
       "Zurücksetzen",
     );
     if (ok) {
@@ -141,7 +141,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
     h(
       "section",
       { class: "panel wide" },
-      h("h2", { text: "Ladder" }),
+      h("h2", { text: "Rangliste" }),
       h("div", { class: "tabs" }, tabs.local, tabs.global),
       intro,
       body,

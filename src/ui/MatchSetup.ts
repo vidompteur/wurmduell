@@ -72,7 +72,7 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
     "div",
     { class: "field check" },
     pure,
-    h("label", { htmlFor: "pure", text: "Wurmduell pure: nur Bazooka, keine weiteren Waffen" }),
+    h("label", { htmlFor: "pure", text: "Original Modus (nur Bazooka, keine anderen Waffen)" }),
   );
   const syncPure = (): void => {
     teleports.disabled = pure.checked;

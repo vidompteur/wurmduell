@@ -33,8 +33,8 @@ export function renderResult(root: HTMLElement, result: MatchResult, opts: Resul
     h("tr", {}, h("th", { text: label, scope: "row" } as never), h("td", { class: "num", text: va }), h("td", { class: "num", text: vb }));
 
   const ladderNote = result.teams.some((t) => t.controller.kind === "human")
-    ? "Das Ergebnis wurde in der Ladder gespeichert."
-    : "Computer gegen Computer – kein Ladder-Eintrag.";
+    ? "Das Ergebnis wurde in der Rangliste gespeichert."
+    : "Computer gegen Computer – kein Eintrag in der Rangliste.";
 
   root.append(
     h(
@@ -66,7 +66,7 @@ export function renderResult(root: HTMLElement, result: MatchResult, opts: Resul
         "div",
         { class: "row" },
         h("button", { class: "btn btn-primary", type: "button", text: "Revanche", onclick: opts.onRematch }),
-        h("button", { class: "btn", type: "button", text: "Ladder", onclick: opts.onLadder }),
+        h("button", { class: "btn", type: "button", text: "Rangliste", onclick: opts.onLadder }),
         h("button", { class: "btn", type: "button", text: "Hauptmenü", onclick: opts.onMenu }),
       ),
     ),

@@ -137,7 +137,7 @@ export async function buildGlobalEntries(opts: BuildOptions): Promise<{ entries:
       if (status !== 200) {
         const code = (body as { error?: unknown } | null)?.error;
         if (code === "RecordNotFound") {
-          report.push({ input, did, status: "no-record", message: "noch keine Ladder-Summary im PDS (nie angemeldet gespielt?)" });
+          report.push({ input, did, status: "no-record", message: "noch keine Ranglisten-Zusammenfassung im PDS (nie angemeldet gespielt?)" });
           continue;
         }
         throw new Error(`PDS antwortete mit ${status}`);

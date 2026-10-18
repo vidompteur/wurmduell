@@ -3,7 +3,7 @@ Ein Spiel wie Worms in dem zwei Würmer gegeneinander kämpfen und aufeinander s
 
 # Spielen
 
-Rundenbasiertes Artillerie-Spiel für zwei Teams (2–3 Würmer pro Team): im Hotseat gegeneinander oder gegen den Computer (Einfach, Normal, Schwer). Das Gelände ist zerstörbar, Wind beeinflusst Bazooka-Schüsse, wer ins Wasser fällt, ertrinkt. Ergebnisse landen in einer lokalen Ladder (im Browser gespeichert).
+Rundenbasiertes Artillerie-Spiel für zwei Teams (2–3 Würmer pro Team): im Hotseat gegeneinander oder gegen den Computer (Einfach, Normal, Schwer). Das Gelände ist zerstörbar, Wind beeinflusst Bazooka-Schüsse, wer ins Wasser fällt, ertrinkt. Ergebnisse landen in einer lokalen Rangliste (im Browser gespeichert).
 
 ## Steuerung
 
@@ -19,9 +19,9 @@ Rundenbasiertes Artillerie-Spiel für zwei Teams (2–3 Würmer pro Team): im Ho
 
 Verlässt du eine laufende Partie (Browser oder Tab schließen, Seite neu laden), wird sie gewertet: Es verliert das Team mit weniger Rest-Lebenspunkten, bei Gleichstand das Team, das geht. „Zurück zum Menü“ zählt immer als Niederlage.
 
-**Wurmduell pure:** Im Match-Setup lässt sich die Checkbox „Wurmduell pure: nur Bazooka, keine weiteren Waffen“ aktivieren. Dann gibt es weder Granate, Dynamit, Shotgun noch Teleport; die Waffenleiste zeigt nur die Bazooka. Standard in `src/config.ts` unter `rules.pure`.
+**Original Modus:** Im Match-Setup lässt sich die Checkbox „Original Modus (nur Bazooka, keine anderen Waffen)“ aktivieren. Dann gibt es weder Granate, Dynamit, Shotgun noch Teleport; die Waffenleiste zeigt nur die Bazooka. Standard in `src/config.ts` unter `rules.pure`.
 
-**Handys:** Beim Laden auf Touch-Geräten erscheint ein Hinweis, dass Wurmduell für den Desktop gedacht ist und eine Tastatur braucht. Abschaltbar über `hud.mobileNotice` in `src/config.ts`.
+**Handys:** Beim Laden auf Touch-Geräten erscheint ein Hinweis, dass Wurmduell für den Desktop gedacht ist und eine Tastatur braucht. Mit „Verstanden“ verschwindet er nur für diesen Besuch, mit „Mir doch egal“ wird er nicht mehr angezeigt (gemerkt im Browser). Ganz abschaltbar über `hud.mobileNotice` in `src/config.ts`.
 
 Im Spiel blendet oben links eine dezente Legende diese Tasten ein.
 
@@ -47,22 +47,22 @@ Alle Defaults stehen zentral in [`src/config.ts`](src/config.ts):
 
 Bereits im Browser gespeicherte Einstellungen haben Vorrang vor diesen Defaults; zum Testen den localStorage-Eintrag `wurmduell.settings.v1 löschen. Regel- und Physikkonstanten (Zugzeit, Schwerkraft, Wurmgröße, Waffenschaden) liegen in `src/game/constants.ts` bzw. `src/weapons/weapons.ts`.
 
-## Optional: Anmeldung und Ladder-Sync (ATProto)
+## Optional: Anmeldung und Ranglisten-Sync (ATProto)
 
-Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem ATProto-/Bluesky-Account anmeldet, bekommt seine Ladder zusätzlich im eigenen PDS gespeichert und sieht sie auf jedem Gerät.
+Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem ATProto-/Bluesky-Account anmeldet, bekommt seine Rangliste zusätzlich im eigenen PDS gespeichert und sieht sie auf jedem Gerät.
 
 - **Nur auf der veröffentlichten Seite:** Die Anmeldung läuft über OAuth und braucht die öffentliche `client-metadata.json` (siehe „Handle konfigurieren"). Lokal mit `npm run dev` zeigt das Menü nur einen Hinweis.
 - **Identität:** Spieler 1 ist dann an die DID gebunden (nicht an den Handle) und im Match-Setup gesperrt.
 - **Gespeicherte Records** im PDS (Lexicons unter `lexicons/`): `de.wurmduell.profile`, `de.wurmduell.ladderSummary` (ein Eintrag, `rkey: self`) und pro Partie `de.wurmduell.matchResult`.
 - **Offline-sicher:** Jede Partie wird zuerst lokal gespeichert und in eine Sync-Queue gelegt. Schlägt der PDS-Zugriff fehl, bleibt sie dort und wird beim nächsten Start oder Spiel nachgeschickt. Auch Abbruch (Tab schließen) landet in der Queue.
-- **Abmelden** beendet die Session, die lokale Ladder bleibt.
+- **Abmelden** beendet die Session, die lokale Rangliste bleibt.
 - **Scope:** Die Datei `public/client-metadata.json` fordert neben `atproto` das Schreibrecht für die drei `de.wurmduell.*`-Collections an (`repo:…`). Falls der Login mit „invalid scope" scheitert, ist das die erste Stelle zum Prüfen.
 
 Code: `src/atproto/` (`auth.ts` OAuth, `Account.ts` Zustand, `sync.ts` Abgleich und Queue, `records.ts` Records und Merge-Regel).
 
-## Globale Ladder
+## Globale Rangliste
 
-Unter **Ladder → Global** steht die Rangliste aller teilnehmenden Spieler. Sie ist eine statische Datei (`public/ladder.json`), die ein Skript aus den öffentlichen `de.wurmduell.ladderSummary`-Records der Spieler erzeugt (Spieler müssen dafür mindestens einmal angemeldet gespielt haben).
+Unter **Rangliste → Global** steht die Rangliste aller teilnehmenden Spieler. Sie ist eine statische Datei (`public/ladder.json`), die ein Skript aus den öffentlichen `de.wurmduell.ladderSummary`-Records der Spieler erzeugt (Spieler müssen dafür mindestens einmal angemeldet gespielt haben).
 
 **Mitmachen:** Handle oder DID in `public/players.json` eintragen (Pull Request genügt):
 
@@ -88,8 +88,8 @@ src/weapons/       Waffendefinitionen und Schadensmodell
 src/ai/            Computergegner (nutzt dieselbe Physik wie das Spiel)
 src/render/        Canvas-Renderer, Kamera, HUD
 src/ui/            Menü, Setup, Match-Bildschirm, Einstellungen
-src/ladder/        lokale Ladder (localStorage)
-tests/             Vitest-Tests (Physik, Spiellogik, Ladder)
+src/ladder/        lokale Rangliste (localStorage)
+tests/             Vitest-Tests (Physik, Spiellogik, Rangliste)
 ```
 
 Tests laufen mit `npm test`.
@@ -158,7 +158,7 @@ Beende den Dev-Server mit `Ctrl + C`.
 | `npm run build` | Produktions-Build nach `dist/` erzeugen |
 | `npm run preview` | Den fertigen Build lokal testen |
 | `npm test` | Unit-Tests (Vitest) ausführen |
-| `npm run ladder:build` | Globale Ladder (`public/ladder.json`) neu erzeugen |
+| `npm run ladder:build` | Globale Rangliste (`public/ladder.json`) neu erzeugen |
 | `npx wispctl --help` | wisp-CLI ohne globale Installation ausführen |
 
 `npm run build` kompiliert TypeScript und erzeugt die statischen Dateien in `dist/`. Diese Dateien sind später genau das, was wisp.place ausliefert. 

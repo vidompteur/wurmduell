@@ -40,7 +40,7 @@ export function renderMenu(root: HTMLElement, nav: MenuNav, account: Account): (
         "div",
         { class: "stack" },
         btn("Neues Spiel", nav.newGame, true),
-        btn("Ladder", nav.ladder),
+        btn("Rangliste", nav.ladder),
         btn("Einstellungen", nav.settings),
       ),
       accountBox.el,
