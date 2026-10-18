@@ -70,7 +70,7 @@ describe("ATProto-Records", () => {
 });
 
 describe("PDS-Sync", () => {
-  it("schreibt Profil, Match und Summary und übernimmt eine vorhandene Remote-Summary", async () => {
+  it("schreibt Match und Summary und übernimmt eine vorhandene Remote-Summary", async () => {
     const store = new LadderStore(new MemoryStorage());
     store.bindAccount(DID, "anna.test");
     store.recordResult(result(0));
@@ -82,7 +82,7 @@ describe("PDS-Sync", () => {
     const merged = await syncAccount({ client: pds, did: DID, name: "anna.test", store, queue });
     expect(pds.created).toHaveLength(1);
     expect(queue.pending(DID)).toHaveLength(0);
-    expect(pds.records.has(`${COLLECTIONS.profile}/self`)).toBe(true);
+    expect(pds.records.has("de.wurmduell.profile/self")).toBe(false); // kein Profil-Record mehr
     expect(merged).toMatchObject({ matches: 9, wins: 6, bestWinStreak: 5 });
     expect(store.entryFor(DID)).toMatchObject({ matches: 9, wins: 6 });
     expect(pds.records.get(`${COLLECTIONS.ladderSummary}/self`)).toMatchObject({ matches: 9, wins: 6 });

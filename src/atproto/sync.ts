@@ -3,7 +3,6 @@ import type { LadderEntry } from "../types";
 import {
   COLLECTIONS,
   type MatchResultRecord,
-  type ProfileRecord,
   entryFromSummary,
   mergeLadder,
   summaryRecord,
@@ -86,25 +85,16 @@ export interface SyncOptions {
   name: string;
   store: LadderStore;
   queue: SyncQueue;
-  now?: () => Date;
 }
 
 /**
  * Vollständiger Abgleich mit dem PDS (Spec 9.3):
- * 1. Profil anlegen, falls es fehlt.
- * 2. Wartende `matchResult`-Records schreiben (bei Fehler abbrechen, Rest bleibt in der Queue).
- * 3. Remote-Summary lesen, mit der lokalen mergen, lokal speichern und zurückschreiben.
+ * 1. Wartende `matchResult`-Records schreiben (bei Fehler abbrechen, Rest bleibt in der Queue).
+ * 2. Remote-Summary lesen, mit der lokalen mergen, lokal speichern und zurückschreiben.
  * Wirft bei Netzwerk-/PDS-Fehlern; der Aufrufer zeigt „Sync fehlgeschlagen" und versucht es später erneut.
  */
 export async function syncAccount(opts: SyncOptions): Promise<LadderEntry | null> {
   const { client, did, name, store, queue } = opts;
-  const now = opts.now ?? (() => new Date());
-
-  const profile = await client.getRecord(COLLECTIONS.profile, "self");
-  if (profile === null) {
-    const record: ProfileRecord = { $type: COLLECTIONS.profile, displayName: name.slice(0, 64), createdAt: now().toISOString() };
-    await client.putRecord(COLLECTIONS.profile, "self", record);
-  }
 
   const waiting = queue.pending(did);
   let written = 0;

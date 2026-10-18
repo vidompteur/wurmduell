@@ -4,16 +4,9 @@ import type { LadderEntry, MatchResult } from "../types";
 
 /** Collection-Namen (NSIDs) der Wurmduell-Records im PDS, siehe `lexicons/`. */
 export const COLLECTIONS = {
-  profile: "de.wurmduell.profile",
   ladderSummary: "de.wurmduell.ladderSummary",
   matchResult: "de.wurmduell.matchResult",
 } as const;
-
-export interface ProfileRecord {
-  $type: typeof COLLECTIONS.profile;
-  displayName: string;
-  createdAt: string;
-}
 
 export type SummaryRecord = {
   $type: typeof COLLECTIONS.ladderSummary;

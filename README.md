@@ -53,10 +53,10 @@ Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem
 
 - **Nur auf der veröffentlichten Seite:** Die Anmeldung läuft über OAuth und braucht die öffentliche `client-metadata.json` (siehe „Handle konfigurieren"). Lokal mit `npm run dev` zeigt das Menü nur einen Hinweis.
 - **Identität:** Spieler 1 ist dann an die DID gebunden (nicht an den Handle) und im Match-Setup gesperrt.
-- **Gespeicherte Records** im PDS (Lexicons unter `lexicons/`): `de.wurmduell.profile`, `de.wurmduell.ladderSummary` (ein Eintrag, `rkey: self`) und pro Partie `de.wurmduell.matchResult`.
+- **Gespeicherte Records** im PDS (Lexicons unter `lexicons/`): `de.wurmduell.ladderSummary` (ein Eintrag, `rkey: self`) und pro Partie `de.wurmduell.matchResult`.
 - **Offline-sicher:** Jede Partie wird zuerst lokal gespeichert und in eine Sync-Queue gelegt. Schlägt der PDS-Zugriff fehl, bleibt sie dort und wird beim nächsten Start oder Spiel nachgeschickt. Auch Abbruch (Tab schließen) landet in der Queue.
 - **Abmelden** beendet die Session, die lokale Rangliste bleibt.
-- **Scope:** Die Datei `public/client-metadata.json` fordert neben `atproto` das Schreibrecht für die drei `de.wurmduell.*`-Collections an (`repo:…`). Falls der Login mit „invalid scope" scheitert, ist das die erste Stelle zum Prüfen.
+- **Scope (angefragte Rechte):** Nur `atproto` plus Anlegen/Ändern der eigenen `ladderSummary` und Anlegen von `matchResult`-Records, jeweils nur in diesen beiden `de.wurmduell.*`-Collections und ohne Löschrecht (`public/client-metadata.json`). Es gibt keinen Zugriff auf Bluesky-Posts, Follows oder Nachrichten. Falls der Login mit „invalid scope“ scheitert, ist das die erste Stelle zum Prüfen.
 
 Code: `src/atproto/` (`auth.ts` OAuth, `Account.ts` Zustand, `sync.ts` Abgleich und Queue, `records.ts` Records und Merge-Regel).
 
