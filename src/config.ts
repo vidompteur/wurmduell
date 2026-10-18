@@ -36,7 +36,7 @@ export const CONFIG = {
      * Bazooka-Reichweite relativ zum Ursprungswert (1 = original, 1.3 = 30 % weiter).
      * Die Reichweite wächst mit dem Quadrat der Abschussgeschwindigkeit, daher Wurzel.
      */
-    bazookaRange: 1.3,
+    bazookaRange: 1.6,
     /** Teleports pro Team und Partie (im Match-Setup einstellbar). */
     teleports: 1,
     /** „Wurmduell pure“: nur Bazooka, keine weiteren Waffen (im Match-Setup wählbar). */
