@@ -5,6 +5,10 @@ import { matchRecordsForAccount } from "./records";
 import { SyncQueue, syncAccount } from "./sync";
 import { t } from "../i18n";
 
+function errorDetail(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export type SyncStatus = "idle" | "syncing" | "ok" | "error";
 
 export interface AccountView {
@@ -58,7 +62,7 @@ export class Account {
     } catch (error) {
       console.warn("Keine gültige ATProto-Session", error);
       this.session = null;
-      this.error = t("account.error.restore");
+      this.error = t("account.error.restore", { detail: errorDetail(error) });
       this.emit();
     }
   }
@@ -77,7 +81,7 @@ export class Account {
       await signIn(clean);
     } catch (error) {
       console.warn("Login abgebrochen", error);
-      this.error = t("account.error.signIn");
+      this.error = t("account.error.signIn", { detail: errorDetail(error) });
       this.emit();
     }
   }

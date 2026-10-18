@@ -28,13 +28,19 @@ export function clientId(): string {
 
 /** Lädt Client-Bibliothek erst bei Bedarf, damit sie den Spielstart nicht verlangsamt. */
 function getOAuthClient(): Promise<OAuthClient> {
-  clientPromise ??= import("@atproto/oauth-client-browser").then(
-    ({ BrowserOAuthClient }) =>
-      BrowserOAuthClient.load({
-        clientId: clientId(),
-        handleResolver: CONFIG.atproto.handleResolver,
-      }) as unknown as Promise<OAuthClient>,
-  );
+  clientPromise ??= import("@atproto/oauth-client-browser")
+    .then(
+      ({ BrowserOAuthClient }) =>
+        BrowserOAuthClient.load({
+          clientId: clientId(),
+          handleResolver: CONFIG.atproto.handleResolver,
+        }) as unknown as Promise<OAuthClient>,
+    )
+    .catch((error: unknown) => {
+      // Ein fehlgeschlagenes Laden (z. B. kalter Start der Seite) darf nicht für immer gemerkt werden.
+      clientPromise = null;
+      throw error;
+    });
   return clientPromise;
 }
 
@@ -47,8 +53,19 @@ export async function restoreSession(): Promise<AtSession | null> {
 
 /** Leitet zum OAuth-Server des PDS weiter; kehrt normalerweise nicht zurück. */
 export async function signIn(handle: string): Promise<void> {
-  const client = await getOAuthClient();
-  await client.signIn(handle, { state: crypto.randomUUID() });
+  // Der erste Versuch scheitert gelegentlich an kalten Caches (Handle-Auflösung, Client-Metadaten
+  // beim PDS). Ein einziger automatischer zweiter Versuch fängt das ab.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const client = await getOAuthClient();
+      await client.signIn(handle, { state: crypto.randomUUID() });
+      return;
+    } catch (error) {
+      if (attempt >= 2) throw error;
+      console.warn("Login fehlgeschlagen, neuer Versuch", error);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    }
+  }
 }
 
 /** Handle zur DID (kann sich ändern, daher nur zur Anzeige). */
