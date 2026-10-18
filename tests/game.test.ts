@@ -118,7 +118,9 @@ describe("Spielregeln", () => {
     expect(victim.hp).toBeLessThan(100);
     expect(s.shotsFired).toBe(1);
     expect(s.shotsHit).toBe(1);
-    expect(s.damageDealt).toBe(100 - victim.hp);
+    // Sturzschaden durch den Krater zählt nicht zum Schuss-Schaden.
+    expect(s.damageDealt).toBeGreaterThan(0);
+    expect(s.damageDealt).toBeLessThanOrEqual(100 - victim.hp);
     expect(game.stats.teams[1 - team]!.damageTaken).toBe(s.damageDealt);
   });
 
