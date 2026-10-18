@@ -1,0 +1,14 @@
+{
+  "client_id": "https://sites.wisp.place/<HANDLE>/wurmduell/client-metadata.json",
+  "client_name": "Wurmduell",
+  "client_uri": "https://sites.wisp.place/<HANDLE>/wurmduell/",
+  "redirect_uris": [
+    "https://sites.wisp.place/<HANDLE>/wurmduell/"
+  ],
+  "scope": "atproto",
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none",
+  "application_type": "web",
+  "dpop_bound_access_tokens": true
+}
