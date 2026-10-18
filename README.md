@@ -49,7 +49,7 @@ Bereits im Browser gespeicherte Einstellungen haben Vorrang vor diesen Defaults;
 
 ## Optional: Anmeldung und Ranglisten-Sync (ATProto)
 
-Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem ATProto-/Bluesky-Account anmeldet, bekommt seine Rangliste zusätzlich im eigenen PDS gespeichert und sieht sie auf jedem Gerät.
+Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem ATProto-/Eurosky-Account anmeldet, bekommt seine Rangliste zusätzlich im eigenen PDS gespeichert und sieht sie auf jedem Gerät.
 
 - **Nur auf der veröffentlichten Seite:** Die Anmeldung läuft über OAuth und braucht die öffentliche `client-metadata.json` (siehe „Handle konfigurieren"). Lokal mit `npm run dev` zeigt das Menü nur einen Hinweis.
 - **Identität:** Spieler 1 ist dann an die DID gebunden (nicht an den Handle) und im Match-Setup gesperrt.
@@ -105,7 +105,7 @@ Du brauchst:
 - Ein Terminal
 - Git, falls du das Projekt aus einem Repository klonst
 - Node.js inklusive npm
-- Einen ATProto-/Bluesky-Account für wisp.place
+- Einen ATProto-/Eurosky-Account für wisp.place
 - Optional: IntelliJ oder WebStorm mit Coding-Agent
 
 Prüfe zuerst, ob Node und npm bereits installiert sind:
@@ -165,7 +165,7 @@ Beende den Dev-Server mit `Ctrl + C`.
 
 ## Handle konfigurieren
 
-Ersetze vor dem ersten Deployment `<HANDLE>` durch deinen ATProto-/Bluesky-Handle, zum Beispiel `deinname.bsky.social`.
+Ersetze vor dem ersten Deployment `<HANDLE>` durch deinen ATProto-/Eurosky-Handle, zum Beispiel `steini7.eurosky.social`.
 
 Betroffene Dateien:
 

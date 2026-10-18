@@ -306,7 +306,7 @@ Dieses Feature ist optional. Das Spiel muss ohne Login vollständig spielbar sei
 
 ### 8.1 Ziel
 
-- Anmeldung mit einem bestehenden ATProto-/Bluesky-Account.
+- Anmeldung mit einem bestehenden ATProto-/Eurosky-Account.
 - Stabile Spieleridentität über die DID.
 - Speicherung der persönlichen Ladder im PDS des Spielers.
 - Geräteübergreifende Verfügbarkeit der eigenen Statistik.

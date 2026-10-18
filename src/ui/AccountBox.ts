@@ -37,7 +37,7 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
     }
 
     if (!v.available) {
-      el.append(h("p", { class: "muted small", text: "Anmeldung mit ATProto/Bluesky (optional): nur auf der veröffentlichten Seite verfügbar." }));
+      el.append(h("p", { class: "muted small", text: "Anmeldung mit ATProto/Eurosky (optional): nur auf der veröffentlichten Seite verfügbar." }));
       return;
     }
 
@@ -58,7 +58,7 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
       h(
         "details",
         { class: "login" },
-        h("summary", { text: "Mit Bluesky / ATProto anmelden (optional)" }),
+        h("summary", { text: "Mit Eurosky / ATProto anmelden (optional)" }),
         h(
           "form",
           { class: "login-form", onsubmit: submit },
