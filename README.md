@@ -56,6 +56,23 @@ Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem
 
 Code: `src/atproto/` (`auth.ts` OAuth, `Account.ts` Zustand, `sync.ts` Abgleich und Queue, `records.ts` Records und Merge-Regel).
 
+## Globale Ladder
+
+Unter **Ladder → Global** steht die Rangliste aller teilnehmenden Spieler. Sie ist eine statische Datei (`public/ladder.json`), die ein Skript aus den öffentlichen `de.wurmduell.ladderSummary`-Records der Spieler erzeugt (Spieler müssen dafür mindestens einmal angemeldet gespielt haben).
+
+**Mitmachen:** Handle oder DID in `public/players.json` eintragen (Pull Request genügt):
+
+```json
+{ "players": ["nils.bsky.social", "did:plc:abc123"] }
+```
+
+**Aktualisieren:**
+
+- Von Hand: `npm run ladder:build` (braucht Netzwerk), danach `npm run deploy`. Die Datei wird nur umgeschrieben, wenn sich etwas geändert hat.
+- Automatisch: Der Workflow `.github/workflows/ladder.yml` läuft stündlich und per „Run workflow". Er committet eine geänderte `ladder.json` auf `main` und veröffentlicht sie auf wisp.place. Dafür im Repository hinterlegen: Variable `WISP_HANDLE` (z. B. `deinname.bsky.social`) und Secret `WISPCTL_APP_PASSWORD` (App-Passwort des Accounts). Fehlen sie, wird nur committet und eine Warnung ausgegeben.
+
+**Hinweise:** Die Summaries schreiben die Spieler selbst und sie lassen sich daher fälschen; das Skript verwirft nur offensichtlich unplausible Werte (z. B. mehr Treffer als Schüsse). Antwortet ein PDS nicht, bleibt der alte Stand des Spielers erhalten. GitHub pausiert geplante Workflows in Repositories ohne Aktivität nach 60 Tagen.
+
 ## Projektstruktur
 
 ```text
@@ -137,6 +154,7 @@ Beende den Dev-Server mit `Ctrl + C`.
 | `npm run build` | Produktions-Build nach `dist/` erzeugen |
 | `npm run preview` | Den fertigen Build lokal testen |
 | `npm test` | Unit-Tests (Vitest) ausführen |
+| `npm run ladder:build` | Globale Ladder (`public/ladder.json`) neu erzeugen |
 | `npx wispctl --help` | wisp-CLI ohne globale Installation ausführen |
 
 `npm run build` kompiliert TypeScript und erzeugt die statischen Dateien in `dist/`. Diese Dateien sind später genau das, was wisp.place ausliefert. 

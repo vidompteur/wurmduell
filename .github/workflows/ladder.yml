@@ -1,0 +1,62 @@
+name: Globale Ladder aktualisieren
+
+on:
+  schedule:
+    - cron: "0 * * * *" # stündlich
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ladder
+  cancel-in-progress: false
+
+jobs:
+  ladder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Abhängigkeiten installieren
+        run: npm install --no-audit --no-fund
+
+      - name: ladder.json aus den PDS-Daten bauen
+        run: npm run ladder:build
+
+      - name: Änderung committen
+        id: commit
+        run: |
+          if git diff --quiet -- public/ladder.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Keine Änderungen."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/ladder.json
+            git commit -m "chore: globale Ladder aktualisiert"
+            git pull --rebase origin main
+            git push origin HEAD:main
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Veröffentlichen auf wisp.place nur bei Änderung und wenn Zugangsdaten hinterlegt sind.
+      # Repository-Variable WISP_HANDLE (z. B. deinname.bsky.social), Secret WISPCTL_APP_PASSWORD.
+      - name: Deployen
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          WISP_HANDLE: ${{ vars.WISP_HANDLE }}
+          WISPCTL_APP_PASSWORD: ${{ secrets.WISPCTL_APP_PASSWORD }}
+        run: |
+          if [ -z "$WISP_HANDLE" ] || [ -z "$WISPCTL_APP_PASSWORD" ]; then
+            echo "::warning::WISP_HANDLE bzw. WISPCTL_APP_PASSWORD fehlt – ladder.json ist committet, aber nicht veröffentlicht."
+            exit 0
+          fi
+          npm run build
+          npx wispctl deploy "$WISP_HANDLE" --path ./dist --site wurmduell
