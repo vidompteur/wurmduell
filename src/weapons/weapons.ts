@@ -1,5 +1,9 @@
+import { CONFIG } from "../config";
 import type { WeaponId } from "../types";
 import type { WeaponDef } from "./Weapon";
+
+/** Ursprüngliche Bazooka-Mündungsgeschwindigkeit (px/s) bei voller Stärke. */
+const BAZOOKA_BASE_SPEED = 1150;
 
 export const WEAPONS: Record<WeaponId, WeaponDef> = {
   bazooka: {
@@ -9,7 +13,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     kind: "projectile",
     aimable: true,
     chargeable: true,
-    maxSpeed: 1150,
+    maxSpeed: BAZOOKA_BASE_SPEED * Math.sqrt(CONFIG.rules.bazookaRange),
     minSpeedFraction: 0.08,
     explosionRadius: 42,
     maxDamage: 50,
@@ -81,7 +85,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     maxDamage: 0,
     knockback: 0,
     shotsPerTurn: 1,
-    ammo: 2,
+    ammo: CONFIG.rules.teleports,
     countsAsShot: false,
   },
 };

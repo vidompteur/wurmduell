@@ -29,6 +29,17 @@ export const CONFIG = {
     /** Dezente Steuerungs-Legende im Spiel anzeigen. */
     showLegend: true,
   },
+  rules: {
+    /**
+     * Bazooka-Reichweite relativ zum Ursprungswert (1 = original, 1.3 = 30 % weiter).
+     * Die Reichweite wächst mit dem Quadrat der Abschussgeschwindigkeit, daher Wurzel.
+     */
+    bazookaRange: 1.3,
+    /** Teleports pro Team und Partie (im Match-Setup einstellbar). */
+    teleports: 1,
+    /** Höchstwert, der im Match-Setup angeboten wird. */
+    teleportsMax: 3,
+  },
   setup: {
     mode: "vsAi" as MatchMode,
     aiLevel: "normal" as AiLevel,

@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS: Settings = {
     mode: CONFIG.setup.mode,
     aiLevel: CONFIG.setup.aiLevel,
     wormsPerTeam: CONFIG.setup.wormsPerTeam,
+    teleports: CONFIG.rules.teleports,
     names: [...CONFIG.setup.names],
   },
 };
@@ -37,6 +38,10 @@ export function loadSettings(): Settings {
             ? last.aiLevel
             : DEFAULT_SETTINGS.lastSetup.aiLevel,
         wormsPerTeam: last?.wormsPerTeam === 2 ? 2 : 3,
+        teleports:
+          typeof last?.teleports === "number" && Number.isInteger(last.teleports) && last.teleports >= 0 && last.teleports <= CONFIG.rules.teleportsMax
+            ? last.teleports
+            : DEFAULT_SETTINGS.lastSetup.teleports,
         names:
           Array.isArray(last?.names) && typeof last.names[0] === "string" && typeof last.names[1] === "string"
             ? [last.names[0], last.names[1]]

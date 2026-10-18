@@ -38,7 +38,10 @@ Alle Defaults stehen zentral in [`src/config.ts`](src/config.ts):
 | `view` | Standard-Zoom (`zoomDefault`, aktuell 1,4), Zoom-Min/-Max, Reglerschritt, Zoom-Faktor pro Tastendruck, maximale Pixeldichte |
 | `audio` | Ton an/aus, Lautstärke |
 | `hud` | Steuerungs-Legende an/aus |
+| `rules` | Teleports pro Team, Bazooka-Reichweite |
 | `setup` | Vorbelegung im Match-Setup (Modus, KI-Stärke, Teamgröße, Spielernamen) |
+
+Spielregeln, die du in `src/config.ts` unter `rules` änderst: `teleports` (Teleports pro Team, Standard 1; im Match-Setup pro Partie wählbar, 0 bis `teleportsMax`) und `bazookaRange` (Bazooka-Reichweite relativ zum Original, Standard 1,3 = 30 % weiter).
 
 Bereits im Browser gespeicherte Einstellungen haben Vorrang vor diesen Defaults; zum Testen den localStorage-Eintrag `wurmduell.settings.v1` löschen. Regel- und Physikkonstanten (Zugzeit, Schwerkraft, Wurmgröße, Waffenschaden) liegen in `src/game/constants.ts` bzw. `src/weapons/weapons.ts`.
 

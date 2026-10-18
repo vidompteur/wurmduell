@@ -20,6 +20,8 @@ export interface TeamConfig {
 export interface MatchConfig {
   mode: MatchMode;
   wormsPerTeam: 2 | 3;
+  /** Teleports pro Team (Standard: `CONFIG.rules.teleports`). */
+  teleports?: number;
   /** Optional: fester Seed (Tests/Debug). Sonst wird pro Partie ein neuer erzeugt. */
   seed?: string;
   teams: [TeamConfig, TeamConfig];
@@ -91,6 +93,7 @@ export interface Settings {
     mode: MatchMode;
     aiLevel: AiLevel;
     wormsPerTeam: 2 | 3;
+    teleports: number;
     names: [string, string];
   };
 }

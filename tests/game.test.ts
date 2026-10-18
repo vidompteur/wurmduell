@@ -204,8 +204,22 @@ describe("Spielregeln", () => {
     expect(game.teleportTo(worm.x + 5, GROUND_Y + 20)).toBe(false); // im Boden
     expect(game.teleportTo(1200, GROUND_Y - 200)).toBe(true);
     expect(team.ammo.teleport).toBe(WEAPONS.teleport.ammo! - 1);
+    expect(WEAPONS.teleport.ammo).toBe(1);
     runUntil(game, () => worm.grounded, 5);
     expect(Math.abs(worm.x - 1200)).toBeLessThan(5);
+  });
+
+  it("Anzahl der Teleports ist pro Partie einstellbar", () => {
+    expect(makeGame().game.activeTeam.ammo.teleport).toBe(1);
+    const three = new Game(config({ teleports: 3 }), mulberry32(1), flatMap(), () => {});
+    expect(three.teams.every((t) => t.ammo.teleport === 3)).toBe(true);
+    const none = new Game(config({ teleports: 0 }), mulberry32(1), flatMap(), () => {});
+    expect(none.isWeaponAvailable(0, "teleport")).toBe(false);
+  });
+
+  it("Bazooka reicht (ohne Wind, auf ebenem Grund) 30 % weiter als im Original", () => {
+    // Wurfweite bei 45° ~ v² / g; Ursprungsgeschwindigkeit war 1150 px/s.
+    expect(WEAPONS.bazooka.maxSpeed ** 2 / 1150 ** 2).toBeCloseTo(1.3, 5);
   });
 
   it("Dynamit ist begrenzt", () => {

@@ -90,7 +90,7 @@ export class Game {
         grenade: Number.POSITIVE_INFINITY,
         dynamite: WEAPONS.dynamite.ammo ?? Number.POSITIVE_INFINITY,
         shotgun: Number.POSITIVE_INFINITY,
-        teleport: WEAPONS.teleport.ammo ?? Number.POSITIVE_INFINITY,
+        teleport: config.teleports ?? WEAPONS.teleport.ammo ?? Number.POSITIVE_INFINITY,
       },
       selectedWeapon: "bazooka" as WeaponId,
     }));

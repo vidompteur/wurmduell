@@ -1,3 +1,4 @@
+import { CONFIG } from "../config";
 import type { LadderStore } from "../ladder/LadderStore";
 import type { AiLevel, MatchConfig, MatchMode, Settings, TeamConfig } from "../types";
 import { clear, h } from "./dom";
@@ -55,6 +56,13 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
   );
   size.value = String(last.wormsPerTeam);
 
+  const teleports = h("select", { id: "teleports", class: "input" },
+    ...Array.from({ length: CONFIG.rules.teleportsMax + 1 }, (_, n) =>
+      h("option", { value: String(n), text: n === 0 ? "Keine Teleports" : n === 1 ? "1 Teleport pro Team" : `${n} Teleports pro Team` }),
+    ),
+  );
+  teleports.value = String(last.teleports);
+
   const name1 = h("input", { id: "name1", class: "input", type: "text", maxLength: 20, value: last.names[0], list: "known-players", autocomplete: "off" });
   const name2 = h("input", { id: "name2", class: "input", type: "text", maxLength: 20, value: last.names[1], list: "known-players", autocomplete: "off" });
   const error = h("p", { class: "error", role: "alert" } as never);
@@ -82,6 +90,7 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
     }
     const level = ai.value as AiLevel;
     const wormsPerTeam = size.value === "2" ? 2 : 3;
+    const teleportCount = Number(teleports.value);
     const [wormsA, wormsB] = pickWormNames();
 
     const p1 = opts.store.resolvePlayer(n1);
@@ -95,9 +104,9 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
       team2 = { name: `Computer (${AI_LABEL[level]})`, controller: { kind: "ai", level }, wormNames: wormsB };
     }
 
-    opts.settings.lastSetup = { mode: m, aiLevel: level, wormsPerTeam, names: [p1.name, n2 || last.names[1]] };
+    opts.settings.lastSetup = { mode: m, aiLevel: level, wormsPerTeam, teleports: teleportCount, names: [p1.name, n2 || last.names[1]] };
     saveSettings(opts.settings);
-    opts.onStart({ mode: m, wormsPerTeam, teams: [team1, team2] });
+    opts.onStart({ mode: m, wormsPerTeam, teleports: teleportCount, teams: [team1, team2] });
   };
 
   const help = h(
@@ -128,6 +137,7 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
         h("div", { class: "field" }, h("label", { htmlFor: "mode", text: "Modus" }), mode),
         aiField,
         h("div", { class: "field" }, h("label", { htmlFor: "size", text: "Teamgröße" }), size),
+        h("div", { class: "field" }, h("label", { htmlFor: "teleports", text: "Teleports" }), teleports),
         h("div", { class: "field" }, h("label", { htmlFor: "name1", text: "Spieler 1" }), name1),
         name2Field,
         known,
