@@ -96,31 +96,19 @@ npm -v
 
 Wenn beide Befehle Versionsnummern ausgeben, kannst du direkt mit dem Projekt starten. npm empfiehlt ausdrücklich die Installation über einen Node-Version-Manager wie nvm; das vermeidet typische Berechtigungsprobleme bei global installierten Paketen.
 
-## Node.js und npm installieren
+## Voraussetzungen
 
-### Mac
+Du brauchst Node.js/npm und Git (falls geklonst). Installiere Node.js über einen Version-Manager wie nvm (empfohlen durch npm), um Berechtigungsprobleme zu vermeiden.
 
 ```bash
-brew install node
-```
- 
-### Windows
+# Prüfen
+node -v && npm -v
 
-Am einfachsten:
+# Projekt klonen & installieren
+cd wurmduell && npm install
 
-1. Node.js-Installer von [nodejs.org](https://nodejs.org) herunterladen.
-2. Installer ausführen und Standardoptionen übernehmen.
-3. Neue PowerShell oder Eingabeaufforderung öffnen.
-4. Prüfen:
-
-```powershell
-node -v
-npm -v
-```
-
-## Projekt einrichten
-
-git clone dieses Projekt
+# Entwicklermodus starten
+npm run dev  # läuft auf http://localhost:5173/
 
 ## Lokal entwickeln
 
