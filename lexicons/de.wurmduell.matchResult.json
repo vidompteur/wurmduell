@@ -1,0 +1,98 @@
+{
+  "lexicon": 1,
+  "id": "de.wurmduell.matchResult",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "mode",
+          "outcome",
+          "opponent",
+          "stats",
+          "createdAt"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "knownValues": [
+              "hotseat",
+              "vsAi"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "knownValues": [
+              "win",
+              "loss",
+              "draw"
+            ]
+          },
+          "opponent": {
+            "type": "object",
+            "required": [
+              "kind",
+              "name"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "knownValues": [
+                  "human",
+                  "ai"
+                ]
+              },
+              "did": {
+                "type": "string",
+                "format": "did"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "stats": {
+            "type": "object",
+            "required": [
+              "shotsFired",
+              "shotsHit",
+              "damageDealt",
+              "damageTaken"
+            ],
+            "properties": {
+              "shotsFired": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "shotsHit": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "damageDealt": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "damageTaken": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "mapSeed": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

@@ -43,6 +43,19 @@ Alle Defaults stehen zentral in [`src/config.ts`](src/config.ts):
 
 Bereits im Browser gespeicherte Einstellungen haben Vorrang vor diesen Defaults; zum Testen den localStorage-Eintrag `wurmduell.settings.v1 löschen. Regel- und Physikkonstanten (Zugzeit, Schwerkraft, Wurmgröße, Waffenschaden) liegen in `src/game/constants.ts` bzw. `src/weapons/weapons.ts`.
 
+## Optional: Anmeldung und Ladder-Sync (ATProto)
+
+Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem ATProto-/Bluesky-Account anmeldet, bekommt seine Ladder zusätzlich im eigenen PDS gespeichert und sieht sie auf jedem Gerät.
+
+- **Nur auf der veröffentlichten Seite:** Die Anmeldung läuft über OAuth und braucht die öffentliche `client-metadata.json` (siehe „Handle konfigurieren"). Lokal mit `npm run dev` zeigt das Menü nur einen Hinweis.
+- **Identität:** Spieler 1 ist dann an die DID gebunden (nicht an den Handle) und im Match-Setup gesperrt.
+- **Gespeicherte Records** im PDS (Lexicons unter `lexicons/`): `de.wurmduell.profile`, `de.wurmduell.ladderSummary` (ein Eintrag, `rkey: self`) und pro Partie `de.wurmduell.matchResult`.
+- **Offline-sicher:** Jede Partie wird zuerst lokal gespeichert und in eine Sync-Queue gelegt. Schlägt der PDS-Zugriff fehl, bleibt sie dort und wird beim nächsten Start oder Spiel nachgeschickt. Auch Abbruch (Tab schließen) landet in der Queue.
+- **Abmelden** beendet die Session, die lokale Ladder bleibt.
+- **Scope:** Die Datei `public/client-metadata.json` fordert neben `atproto` das Schreibrecht für die drei `de.wurmduell.*`-Collections an (`repo:…`). Falls der Login mit „invalid scope" scheitert, ist das die erste Stelle zum Prüfen.
+
+Code: `src/atproto/` (`auth.ts` OAuth, `Account.ts` Zustand, `sync.ts` Abgleich und Queue, `records.ts` Records und Merge-Regel).
+
 ## Projektstruktur
 
 ```text

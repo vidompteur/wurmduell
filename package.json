@@ -11,6 +11,10 @@
     "test": "vitest run",
     "deploy": "npm run build && wispctl deploy <HANDLE> --path ./dist --site wurmduell"
   },
+  "dependencies": {
+    "@atproto/api": "latest",
+    "@atproto/oauth-client-browser": "latest"
+  },
   "devDependencies": {
     "typescript": "^5.9.0",
     "vite": "^7.1.0",

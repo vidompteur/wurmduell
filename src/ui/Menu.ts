@@ -1,6 +1,8 @@
 import { CONFIG } from "../config";
+import type { Account } from "../atproto/Account";
 import type { Sound } from "../audio/Sound";
 import type { Settings } from "../types";
+import { createAccountBox } from "./AccountBox";
 import { clear, h } from "./dom";
 import { ZOOM_MAX, ZOOM_MIN, saveSettings } from "./settings";
 
@@ -20,7 +22,8 @@ const LOGO = `<svg viewBox="0 0 220 110" width="220" height="110" role="img" ari
   <rect x="196" y="78" width="34" height="9" rx="2" fill="#4b5a45" transform="rotate(-20 196 78)"/>
 </svg>`;
 
-export function renderMenu(root: HTMLElement, nav: MenuNav): () => void {
+export function renderMenu(root: HTMLElement, nav: MenuNav, account: Account): () => void {
+  const accountBox = createAccountBox(account);
   const logo = h("div", { class: "logo" });
   logo.innerHTML = LOGO;
   const btn = (text: string, onclick: () => void, primary = false): HTMLButtonElement =>
@@ -40,9 +43,13 @@ export function renderMenu(root: HTMLElement, nav: MenuNav): () => void {
         btn("Ladder", nav.ladder),
         btn("Einstellungen", nav.settings),
       ),
+      accountBox.el,
     ),
   );
-  return () => clear(root);
+  return () => {
+    accountBox.dispose();
+    clear(root);
+  };
 }
 
 export function renderSettings(root: HTMLElement, settings: Settings, sound: Sound, onBack: () => void): () => void {

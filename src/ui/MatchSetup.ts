@@ -1,3 +1,4 @@
+import type { AccountView } from "../atproto/Account";
 import { CONFIG } from "../config";
 import type { LadderStore } from "../ladder/LadderStore";
 import type { AiLevel, MatchConfig, MatchMode, Settings, TeamConfig } from "../types";
@@ -29,6 +30,8 @@ export function pickWormNames(): [string[], string[]] {
 export interface SetupOptions {
   store: LadderStore;
   settings: Settings;
+  /** Angemeldetes ATProto-Konto (dann ist Spieler 1 daran gebunden). */
+  account: AccountView;
   onStart(config: MatchConfig): void;
   onBack(): void;
 }
@@ -63,7 +66,9 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
   );
   teleports.value = String(last.teleports);
 
-  const name1 = h("input", { id: "name1", class: "input", type: "text", maxLength: 20, value: last.names[0], list: "known-players", autocomplete: "off" });
+  const account = opts.account.did ? opts.account : null;
+  const name1 = h("input", { id: "name1", class: "input", type: "text", maxLength: 64, value: account ? `@${account.handle ?? account.did}` : last.names[0], list: "known-players", autocomplete: "off" });
+  if (account) name1.readOnly = true;
   const name2 = h("input", { id: "name2", class: "input", type: "text", maxLength: 20, value: last.names[1], list: "known-players", autocomplete: "off" });
   const error = h("p", { class: "error", role: "alert" } as never);
 
@@ -93,18 +98,19 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
     const teleportCount = Number(teleports.value);
     const [wormsA, wormsB] = pickWormNames();
 
-    const p1 = opts.store.resolvePlayer(n1);
+    const p1 = account ? opts.store.bindAccount(account.did!, account.handle ?? account.did!) : opts.store.resolvePlayer(n1);
     const team1: TeamConfig = { name: p1.name, controller: { kind: "human", playerId: p1.id }, wormNames: wormsA };
     let team2: TeamConfig;
     if (m === "hotseat") {
       const p2 = opts.store.resolvePlayer(n2);
+      if (p2.id === p1.id) return void (error.textContent = "Die beiden Spieler brauchen verschiedene Namen.");
       n2 = p2.name;
       team2 = { name: p2.name, controller: { kind: "human", playerId: p2.id }, wormNames: wormsB };
     } else {
       team2 = { name: `Computer (${AI_LABEL[level]})`, controller: { kind: "ai", level }, wormNames: wormsB };
     }
 
-    opts.settings.lastSetup = { mode: m, aiLevel: level, wormsPerTeam, teleports: teleportCount, names: [p1.name, n2 || last.names[1]] };
+    opts.settings.lastSetup = { mode: m, aiLevel: level, wormsPerTeam, teleports: teleportCount, names: [account ? last.names[0] : p1.name, n2 || last.names[1]] };
     saveSettings(opts.settings);
     opts.onStart({ mode: m, wormsPerTeam, teleports: teleportCount, teams: [team1, team2] });
   };
@@ -138,7 +144,7 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
         aiField,
         h("div", { class: "field" }, h("label", { htmlFor: "size", text: "Teamgröße" }), size),
         h("div", { class: "field" }, h("label", { htmlFor: "teleports", text: "Teleports" }), teleports),
-        h("div", { class: "field" }, h("label", { htmlFor: "name1", text: "Spieler 1" }), name1),
+        h("div", { class: "field" }, h("label", { htmlFor: "name1", text: account ? "Spieler 1 (angemeldet)" : "Spieler 1" }), name1),
         name2Field,
         known,
         error,

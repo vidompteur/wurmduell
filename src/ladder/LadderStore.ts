@@ -188,6 +188,15 @@ export class LadderStore {
     this.recordMatch(participantsFromResult(result));
   }
 
+  /** Ersetzt (oder legt an) den Ladder-Eintrag eines Spielers, z. B. nach dem PDS-Abgleich. */
+  upsertEntry(entry: LadderEntry): void {
+    const ladder = this.load();
+    const i = ladder.entries.findIndex((e) => e.playerId === entry.playerId);
+    if (i >= 0) ladder.entries[i] = entry;
+    else ladder.entries.push(entry);
+    this.save(ladder);
+  }
+
   reset(): void {
     this.save({ version: 1, entries: [] });
   }
@@ -211,6 +220,31 @@ export class LadderStore {
     reg.players.push(created);
     this.savePlayers(reg);
     return created;
+  }
+
+  /**
+   * Verknüpft ein ATProto-Konto mit einem lokalen Spieler. Die DID ist die stabile ID
+   * (Handles können sich ändern); der angezeigte Name folgt dem aktuellen Handle.
+   */
+  bindAccount(did: string, name: string): PlayerRecord {
+    const clean = name.trim() || did;
+    const reg = this.loadPlayers();
+    const existing = reg.players.find((p) => p.id === did);
+    const taken = (n: string): boolean => reg.players.some((p) => p.id !== did && p.name.toLowerCase() === n.toLowerCase());
+    const finalName = taken(clean) ? `${clean} (Konto)` : clean;
+    if (existing) {
+      existing.name = finalName;
+    } else {
+      reg.players.push({ id: did, name: finalName });
+    }
+    this.savePlayers(reg);
+    const ladder = this.load();
+    const entry = ladder.entries.find((e) => e.playerId === did);
+    if (entry && entry.name !== finalName) {
+      entry.name = finalName;
+      this.save(ladder);
+    }
+    return { id: did, name: finalName };
   }
 
   /** Benennt einen Spieler um, ohne seine ID zu ändern. Liefert false bei Namenskonflikt. */

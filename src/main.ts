@@ -1,4 +1,5 @@
 import "./styles.css";
+import { Account } from "./atproto/Account";
 import { Sound } from "./audio/Sound";
 import { LadderStore } from "./ladder/LadderStore";
 import { renderLadder } from "./ladder/LadderUi";
@@ -16,6 +17,7 @@ if (!app) throw new Error("#app fehlt");
 const store = new LadderStore();
 const settings = loadSettings();
 const sound = new Sound(settings);
+const account = new Account(store);
 
 // Browser erlauben Audio erst nach einer Geste.
 const unlock = (): void => sound.unlock();
@@ -31,11 +33,11 @@ function show(screen: () => () => void, cls = ""): void {
 }
 
 function toMenu(): void {
-  show(() => renderMenu(app!, { newGame: toSetup, ladder: toLadder, settings: toSettings }), "screen");
+  show(() => renderMenu(app!, { newGame: toSetup, ladder: toLadder, settings: toSettings }, account), "screen");
 }
 
 function toSetup(): void {
-  show(() => renderSetup(app!, { store, settings, onStart: toMatch, onBack: toMenu }), "screen");
+  show(() => renderSetup(app!, { store, settings, account: account.view(), onStart: toMatch, onBack: toMenu }), "screen");
 }
 
 function toLadder(): void {
@@ -58,6 +60,7 @@ function toMatch(config: MatchConfig): MatchHandle {
       sound,
       zoom: settings.zoom,
       showLegend: settings.showLegend,
+      onRecorded: (result) => account.onMatchFinished(result),
       onFinish: (result) => toResult(result, config),
       onExit: toMenu,
     });
@@ -84,6 +87,8 @@ function toResult(result: MatchResult, config: MatchConfig): void {
 }
 
 toMenu();
+// Optionales ATProto-Konto im Hintergrund wiederherstellen; das Spiel startet unabhängig davon.
+void account.restore();
 
 // Debug-/Testzugang nur mit ?debug in der URL.
 if (new URLSearchParams(location.search).has("debug")) {

@@ -40,6 +40,17 @@ export const CONFIG = {
     /** Höchstwert, der im Match-Setup angeboten wird. */
     teleportsMax: 3,
   },
+  atproto: {
+    /** ATProto-Login/-Sync anbieten (das Spiel bleibt ohne Konto voll spielbar). */
+    enabled: true,
+    /** Löst Handles beim Login auf. */
+    handleResolver: "https://bsky.social",
+    /**
+     * Leer = wird aus der aktuellen Seiten-URL abgeleitet (`client-metadata.json` neben der index.html).
+     * Muss exakt zur `client_id` in `public/client-metadata.json` passen.
+     */
+    clientId: "",
+  },
   setup: {
     mode: "vsAi" as MatchMode,
     aiLevel: "normal" as AiLevel,

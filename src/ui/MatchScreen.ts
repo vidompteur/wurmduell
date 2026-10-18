@@ -20,6 +20,8 @@ export interface MatchScreenOptions {
   zoom: number;
   /** Steuerungs-Legende einblenden. */
   showLegend: boolean;
+  /** Ergebnis wurde soeben in der lokalen Ladder gespeichert (auch bei Abbruch/Aufgabe). */
+  onRecorded?(result: MatchResult): void;
   /** Partie regulär beendet (Ergebnis ist bereits in der Ladder gespeichert). */
   onFinish(result: MatchResult): void;
   /** Spieler verlässt die Partie (zählt als Aufgabe; Ergebnis ist bereits in der Ladder). */
@@ -59,6 +61,7 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
     if (e.type === "matchEnd") {
       // Ladder sofort speichern, danach kurz das Ergebnis wirken lassen.
       opts.store.recordResult(e.result);
+      opts.onRecorded?.(e.result);
       if (leaving) return;
       const winner = e.result.winner === null ? "Unentschieden!" : `${e.result.teams[e.result.winner]!.name} gewinnt!`;
       hud?.showBanner(winner, e.result.winner ?? -1, 3000);

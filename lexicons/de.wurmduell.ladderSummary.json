@@ -1,0 +1,67 @@
+{
+  "lexicon": 1,
+  "id": "de.wurmduell.ladderSummary",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": [
+          "matches",
+          "wins",
+          "losses",
+          "shotsFired",
+          "shotsHit",
+          "damageDealt",
+          "damageTaken",
+          "bestWinStreak",
+          "currentWinStreak",
+          "updatedAt"
+        ],
+        "properties": {
+          "matches": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "wins": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "losses": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "shotsFired": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "shotsHit": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "damageDealt": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "damageTaken": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bestWinStreak": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "currentWinStreak": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

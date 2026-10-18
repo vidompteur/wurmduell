@@ -5,9 +5,14 @@
   "redirect_uris": [
     "https://sites.wisp.place/<HANDLE>/wurmduell/"
   ],
-  "scope": "atproto",
-  "grant_types": ["authorization_code", "refresh_token"],
-  "response_types": ["code"],
+  "scope": "atproto repo:de.wurmduell.profile repo:de.wurmduell.ladderSummary repo:de.wurmduell.matchResult",
+  "grant_types": [
+    "authorization_code",
+    "refresh_token"
+  ],
+  "response_types": [
+    "code"
+  ],
   "token_endpoint_auth_method": "none",
   "application_type": "web",
   "dpop_bound_access_tokens": true

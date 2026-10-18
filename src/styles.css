@@ -764,3 +764,49 @@ input[type="checkbox"] {
     transition: none !important;
   }
 }
+
+/* ---------- ATProto-Konto (optional) ---------- */
+
+.account {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.account .login {
+  width: 100%;
+  text-align: left;
+}
+
+.account summary {
+  cursor: pointer;
+  text-align: center;
+  color: var(--muted, #aab3d0);
+}
+
+.login-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.account-line,
+.account-status {
+  margin: 0;
+}
+
+.account-status.ok {
+  color: #69db7c;
+}
+
+.account-status.error {
+  color: #ff8787;
+}
+
+.account-status.syncing {
+  color: #ffd43b;
+}
