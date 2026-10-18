@@ -43,7 +43,7 @@ export const CONFIG = {
   setup: {
     mode: "vsAi" as MatchMode,
     aiLevel: "normal" as AiLevel,
-    wormsPerTeam: 3 as 2 | 3,
+    wormsPerTeam: 2 as 2 | 3,
     names: ["Spieler 1", "Spieler 2"] as [string, string],
   },
 } as const;

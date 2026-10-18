@@ -38,12 +38,10 @@ Alle Defaults stehen zentral in [`src/config.ts`](src/config.ts):
 | `view` | Standard-Zoom (`zoomDefault`, aktuell 1,4), Zoom-Min/-Max, Reglerschritt, Zoom-Faktor pro Tastendruck, maximale Pixeldichte |
 | `audio` | Ton an/aus, Lautstärke |
 | `hud` | Steuerungs-Legende an/aus |
-| `rules` | Teleports pro Team, Bazooka-Reichweite |
+| `rules` | Teleports pro Team (`teleports`, Standard 1), Bazooka-Reichweite (`bazookaRange`, 1,3× Original) |
 | `setup` | Vorbelegung im Match-Setup (Modus, KI-Stärke, Teamgröße, Spielernamen) |
 
-Spielregeln, die du in `src/config.ts` unter `rules` änderst: `teleports` (Teleports pro Team, Standard 1; im Match-Setup pro Partie wählbar, 0 bis `teleportsMax`) und `bazookaRange` (Bazooka-Reichweite relativ zum Original, Standard 1,3 = 30 % weiter).
-
-Bereits im Browser gespeicherte Einstellungen haben Vorrang vor diesen Defaults; zum Testen den localStorage-Eintrag `wurmduell.settings.v1` löschen. Regel- und Physikkonstanten (Zugzeit, Schwerkraft, Wurmgröße, Waffenschaden) liegen in `src/game/constants.ts` bzw. `src/weapons/weapons.ts`.
+Bereits im Browser gespeicherte Einstellungen haben Vorrang vor diesen Defaults; zum Testen den localStorage-Eintrag `wurmduell.settings.v1 löschen. Regel- und Physikkonstanten (Zugzeit, Schwerkraft, Wurmgröße, Waffenschaden) liegen in `src/game/constants.ts` bzw. `src/weapons/weapons.ts`.
 
 ## Projektstruktur
 
@@ -191,9 +189,7 @@ Melde dich einmalig bei wisp an:
 npx wispctl login deinname.bsky.social
 ```
 
-Der Browser öffnet sich zur Authentifizierung. Nach erfolgreichem Login kann wispctl in diesem Account deployen. [blog.wisp](https://blog.wisp.place/posts/wispctl-1-3-1/)
-
-Alternativ kannst du dich direkt beim Deploy authentifizieren; wispctl unterstützt auch die Verwendung eines App-Passworts über die Umgebungsvariable `WISPCTL_APP_PASSWORD`. [blog.wisp](https://blog.wisp.place/posts/wispctl-1-3-1/)
+Der Browser öffnet sich zur Authentifizierung. Nach erfolgreichem Login kann wispctl in diesem Account deployen. Alternativ kannst du dich direkt beim Deploy authentifizieren und wispctl unterstützt auch die Verwendung eines App-Passworts über `WISPCTL_APP_PASSWORD`.
 
 ## Erstmals deployen
 
@@ -299,4 +295,4 @@ npx wispctl login deinname.bsky.social
 npm run deploy
 ```
 
-Danach ist dein aktueller Stand unter `https://sites.wisp.place/deinname.bsky.social/wurmduell/` verfügbar. [blog.wisp](https://blog.wisp.place/posts/wispctl-1-3-1/)
+Danach ist dein aktueller Stand unter `https://sites.wisp.place/deinname.bsky.social/wurmduell/` verfügbar.
