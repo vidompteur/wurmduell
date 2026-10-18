@@ -8,7 +8,6 @@ const BAZOOKA_BASE_SPEED = 1150;
 export const WEAPONS: Record<WeaponId, WeaponDef> = {
   bazooka: {
     id: "bazooka",
-    name: "Bazooka",
     key: "1",
     kind: "projectile",
     aimable: true,
@@ -24,7 +23,6 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   grenade: {
     id: "grenade",
-    name: "Granate",
     key: "2",
     kind: "projectile",
     aimable: true,
@@ -41,7 +39,6 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   dynamite: {
     id: "dynamite",
-    name: "Dynamit",
     key: "3",
     kind: "projectile",
     aimable: false,
@@ -58,7 +55,6 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   shotgun: {
     id: "shotgun",
-    name: "Shotgun",
     key: "4",
     kind: "hitscan",
     aimable: true,
@@ -74,7 +70,6 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   teleport: {
     id: "teleport",
-    name: "Teleport",
     key: "5",
     kind: "utility",
     aimable: false,

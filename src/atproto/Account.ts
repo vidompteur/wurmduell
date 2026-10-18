@@ -3,6 +3,7 @@ import type { MatchResult } from "../types";
 import { type AtSession, createPdsClient, loginAvailable, resolveHandle, restoreSession, signIn } from "./auth";
 import { matchRecordsForAccount } from "./records";
 import { SyncQueue, syncAccount } from "./sync";
+import { t } from "../i18n";
 
 export type SyncStatus = "idle" | "syncing" | "ok" | "error";
 
@@ -57,7 +58,7 @@ export class Account {
     } catch (error) {
       console.warn("Keine gültige ATProto-Session", error);
       this.session = null;
-      this.error = "Anmeldung nicht möglich oder abgelaufen. Du spielst offline.";
+      this.error = t("account.error.restore");
       this.emit();
     }
   }
@@ -66,7 +67,7 @@ export class Account {
   async signIn(handle: string): Promise<void> {
     const clean = handle.trim().replace(/^@/, "");
     if (!clean) {
-      this.error = "Bitte gib deinen Handle ein, z. B. name.bsky.social.";
+      this.error = t("account.error.noHandle");
       this.emit();
       return;
     }
@@ -76,7 +77,7 @@ export class Account {
       await signIn(clean);
     } catch (error) {
       console.warn("Login abgebrochen", error);
-      this.error = "Anmeldung abgebrochen oder fehlgeschlagen.";
+      this.error = t("account.error.signIn");
       this.emit();
     }
   }
@@ -123,7 +124,7 @@ export class Account {
       } catch (error) {
         console.warn("PDS-Sync fehlgeschlagen", error);
         this.status = "error";
-        this.error = "Sync mit dem PDS fehlgeschlagen. Die Partien bleiben lokal gespeichert und werden später übertragen.";
+        this.error = t("account.error.sync");
       } finally {
         this.busy = null;
         this.emit();
@@ -135,7 +136,7 @@ export class Account {
   private async adopt(session: AtSession): Promise<void> {
     this.session = session;
     this.handle = (await resolveHandle(session)) ?? session.sub;
-    this.store.bindAccount(session.sub, this.handle);
+    this.store.bindAccount(session.sub, this.handle, ` ${t("account.nameSuffix")}`);
     this.emit();
     await this.sync();
   }

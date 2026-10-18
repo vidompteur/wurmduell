@@ -1,3 +1,5 @@
+import { t } from "../i18n";
+
 type Child = Node | string | null | undefined | false;
 type Props = Partial<{
   class: string;
@@ -63,7 +65,7 @@ export function clear(el: Element): void {
 }
 
 /** Modaler Bestätigungsdialog. Löst mit `true`, wenn bestätigt wurde. */
-export function confirmDialog(message: string, confirmLabel = "OK", cancelLabel = "Abbrechen"): Promise<boolean> {
+export function confirmDialog(message: string, confirmLabel = t("dialog.ok"), cancelLabel = t("dialog.cancel")): Promise<boolean> {
   return new Promise((resolve) => {
     const finish = (value: boolean): void => {
       overlay.remove();
@@ -90,7 +92,7 @@ export function confirmDialog(message: string, confirmLabel = "OK", cancelLabel 
 }
 
 /** Modaler Texteingabe-Dialog. Löst mit dem Text oder `null` bei Abbruch. */
-export function promptDialog(message: string, initial: string, confirmLabel = "Speichern"): Promise<string | null> {
+export function promptDialog(message: string, initial: string, confirmLabel = t("dialog.save")): Promise<string | null> {
   return new Promise((resolve) => {
     const finish = (value: string | null): void => {
       overlay.remove();
@@ -114,7 +116,7 @@ export function promptDialog(message: string, initial: string, confirmLabel = "S
         h(
           "div",
           { class: "row" },
-          h("button", { class: "btn", type: "button", text: "Abbrechen", onclick: () => finish(null) }),
+          h("button", { class: "btn", type: "button", text: t("dialog.cancel"), onclick: () => finish(null) }),
           h("button", { class: "btn btn-primary", type: "button", text: confirmLabel, onclick: submit }),
         ),
       ),

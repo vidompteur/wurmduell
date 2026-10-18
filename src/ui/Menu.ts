@@ -5,6 +5,7 @@ import type { Settings } from "../types";
 import { createAccountBox } from "./AccountBox";
 import { clear, h } from "./dom";
 import { ZOOM_MAX, ZOOM_MIN, saveSettings } from "./settings";
+import { t } from "../i18n";
 
 export interface MenuNav {
   newGame(): void;
@@ -12,7 +13,7 @@ export interface MenuNav {
   settings(): void;
 }
 
-const LOGO = `<svg viewBox="0 0 220 110" width="220" height="110" role="img" aria-label="Wurmduell-Logo">
+const LOGO = `<svg viewBox="0 0 220 110" width="220" height="110" role="img" aria-label="${t('menu.logoAlt')}">
   <path d="M14 92 C40 40, 70 110, 100 68 S160 36, 186 70" fill="none" stroke="#b8607a" stroke-width="26" stroke-linecap="round"/>
   <path d="M14 92 C40 40, 70 110, 100 68 S160 36, 186 70" fill="none" stroke="#f4a6b8" stroke-width="20" stroke-linecap="round"/>
   <circle cx="186" cy="62" r="17" fill="#f4a6b8" stroke="#b8607a" stroke-width="3"/>
@@ -34,14 +35,14 @@ export function renderMenu(root: HTMLElement, nav: MenuNav, account: Account): (
       "section",
       { class: "panel menu" },
       logo,
-      h("h1", { text: "Wurmduell" }),
-      h("p", { class: "muted", text: "Rundenbasierte Wurmschlacht für zwei – oder gegen den Computer." }),
+      h("h1", { text: t("app.title") }),
+      h("p", { class: "muted", text: t("menu.tagline") }),
       h(
         "div",
         { class: "stack" },
-        btn("Neues Spiel", nav.newGame, true),
-        btn("Rangliste", nav.ladder),
-        btn("Einstellungen", nav.settings),
+        btn(t("menu.newGame"), nav.newGame, true),
+        btn(t("menu.ladder"), nav.ladder),
+        btn(t("menu.settings"), nav.settings),
       ),
       accountBox.el,
     ),
@@ -103,19 +104,19 @@ export function renderSettings(root: HTMLElement, settings: Settings, sound: Sou
     h(
       "section",
       { class: "panel" },
-      h("h2", { text: "Einstellungen" }),
+      h("h2", { text: t("settings.title") }),
       h(
         "div",
         { class: "field" },
-        h("label", { htmlFor: "set-zoom", text: "Ansichtsgröße (größer = größere Würmer)" }),
+        h("label", { htmlFor: "set-zoom", text: t("settings.zoom") }),
         zoom,
         zoomValue,
-        h("span", { class: "muted small", text: "Gilt ab dem nächsten Spiel. Im Spiel: Mausrad oder + / −." }),
+        h("span", { class: "muted small", text: t("settings.zoomHint") }),
       ),
-      h("div", { class: "field check" }, legend, h("label", { htmlFor: "set-legend", text: "Steuerungs-Legende im Spiel anzeigen" })),
-      h("div", { class: "field check" }, enabled, h("label", { htmlFor: "set-sound", text: "Ton aktiviert" })),
-      h("div", { class: "field" }, h("label", { htmlFor: "set-volume", text: "Lautstärke" }), volume, volumeValue),
-      h("div", { class: "row" }, h("button", { class: "btn", type: "button", text: "Zurück zum Menü", onclick: onBack })),
+      h("div", { class: "field check" }, legend, h("label", { htmlFor: "set-legend", text: t("settings.legend") })),
+      h("div", { class: "field check" }, enabled, h("label", { htmlFor: "set-sound", text: t("settings.sound") })),
+      h("div", { class: "field" }, h("label", { htmlFor: "set-volume", text: t("settings.volume") }), volume, volumeValue),
+      h("div", { class: "row" }, h("button", { class: "btn", type: "button", text: t("common.backToMenu"), onclick: onBack })),
     ),
   );
   return () => clear(root);

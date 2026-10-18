@@ -1,4 +1,5 @@
 import { CONFIG } from "../config";
+import { t } from "../i18n";
 import { WATER_Y, WORLD_H, WORLD_W } from "../game/constants";
 import type { Game } from "../game/Game";
 import type { GameEvent } from "../game/GameState";
@@ -63,7 +64,7 @@ export class Renderer {
     private readonly game: Game,
   ) {
     const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas 2D wird nicht unterstützt");
+    if (!ctx) throw new Error(t("match.error.canvas"));
     this.ctx = ctx;
   }
 
@@ -153,7 +154,7 @@ export class Renderer {
         }
         break;
       case "died":
-        this.texts.push({ x: e.x, y: e.y - 30, text: e.cause === "water" ? "Glub!" : "†", age: 0, color: "#ffffff" });
+        this.texts.push({ x: e.x, y: e.y - 30, text: e.cause === "water" ? t("hud.floatingDrown") : "†", age: 0, color: "#ffffff" });
         break;
       default:
         break;

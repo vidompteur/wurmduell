@@ -226,12 +226,12 @@ export class LadderStore {
    * Verknüpft ein ATProto-Konto mit einem lokalen Spieler. Die DID ist die stabile ID
    * (Handles können sich ändern); der angezeigte Name folgt dem aktuellen Handle.
    */
-  bindAccount(did: string, name: string): PlayerRecord {
+  bindAccount(did: string, name: string, conflictSuffix = " (Konto)"): PlayerRecord {
     const clean = name.trim() || did;
     const reg = this.loadPlayers();
     const existing = reg.players.find((p) => p.id === did);
     const taken = (n: string): boolean => reg.players.some((p) => p.id !== did && p.name.toLowerCase() === n.toLowerCase());
-    const finalName = taken(clean) ? `${clean} (Konto)` : clean;
+    const finalName = taken(clean) ? `${clean}${conflictSuffix}` : clean;
     if (existing) {
       existing.name = finalName;
     } else {

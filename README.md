@@ -77,10 +77,17 @@ Unter **Rangliste → Global** steht die Rangliste aller teilnehmenden Spieler. 
 
 **Hinweise:** Die Summaries schreiben die Spieler selbst und sie lassen sich daher fälschen; das Skript verwirft nur offensichtlich unplausible Werte (z. B. mehr Treffer als Schüsse). Antwortet ein PDS nicht, bleibt der alte Stand des Spielers erhalten. GitHub pausiert geplante Workflows in Repositories ohne Aktivität nach 60 Tagen.
 
+## Texte ändern
+
+Alle sichtbaren Texte der Oberfläche stehen zentral in [`src/i18n/de.properties`](src/i18n/de.properties) (Format `schluessel=Text`, `#` für Kommentare, Platzhalter wie `{name}`). Im Code werden sie über `t("schluessel", { name: "…" })` abgerufen. Dort änderst du Beschriftungen, Meldungen, Waffennamen, Wurmnamen (kommagetrennt, `setup.wormNames`) und die Steuerungs-Legende. Fehlt ein Schlüssel, erscheint er selbst als Text und eine Warnung in der Browser-Konsole; der Test `tests/i18n.test.ts` prüft das Format und die dynamisch gebildeten Schlüssel.
+
+Nicht in der Datei stehen die statischen Texte in `index.html` (Seitentitel, Beschreibung) sowie Log-Ausgaben für Entwickler (Konsole, Skript `ladder:build`).
+
 ## Projektstruktur
 
 ```text
 src/config.ts      Standardwerte (siehe oben)
+src/i18n/          zentrale Texte (de.properties) und t()-Funktion
 src/game/          Spiellogik ohne DOM (Game, TurnManager, Konstanten, RNG)
 src/terrain/       Kartengenerator und zerstörbares Gelände
 src/entities/      Würmer und Projektile

@@ -2,7 +2,6 @@ import type { WeaponId } from "../types";
 
 export interface WeaponDef {
   id: WeaponId;
-  name: string;
   /** Taste in der Waffenleiste. */
   key: string;
   kind: "projectile" | "hitscan" | "utility";

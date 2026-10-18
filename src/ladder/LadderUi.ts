@@ -3,6 +3,7 @@ import type { LadderStore } from "./LadderStore";
 import { accuracy, winRate } from "./LadderStore";
 import { loadGlobalLadder } from "./globalLadderClient";
 import type { LadderEntry } from "../types";
+import { t } from "../i18n";
 
 const pct = (v: number): string =>
   `${(v * 100).toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 1 })} %`;
@@ -19,7 +20,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
   let tab: Tab = "local";
 
   const table = (entries: readonly LadderEntry[], canRename: boolean): HTMLElement => {
-    const head = ["Rang", "Name", "Siege", "Niederlagen", "Matches", "Winrate", "Zielgenauigkeit", "Schaden", "Beste Serie"];
+    const head = ["rank", "name", "wins", "losses", "matches", "winrate", "accuracy", "damage", "streak"].map((c) => t(`ladder.col.${c}`));
     const rows = entries.map((e, i) =>
       h(
         "tr",
@@ -33,7 +34,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
             ? h("button", {
                 class: "icon-btn",
                 type: "button",
-                title: "Umbenennen",
+                title: t("ladder.rename"),
                 text: "✎",
                 onclick: () => void rename(e.playerId, e.name),
               })
@@ -59,7 +60,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
     const entries = store.entries();
     if (entries.length === 0) {
       body.append(
-        h("p", { class: "muted", text: "Noch keine Partien gespielt. Sobald ein Match beendet ist, erscheint hier die Rangliste." }),
+        h("p", { class: "muted", text: t("ladder.empty") }),
       );
       return;
     }
@@ -67,23 +68,23 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
   };
 
   const drawGlobal = (): void => {
-    const status = h("p", { class: "muted", text: "Lade globale Rangliste …" });
+    const status = h("p", { class: "muted", text: t("ladder.global.loading") });
     body.append(status);
     void loadGlobalLadder().then(
       (file) => {
         if (tab !== "global") return;
         status.remove();
         if (file.entries.length === 0) {
-          body.append(h("p", { class: "muted", text: "Die globale Rangliste ist noch leer. Sie wird regelmäßig aus den Daten angemeldeter Spieler erzeugt." }));
+          body.append(h("p", { class: "muted", text: t("ladder.global.empty") }));
           return;
         }
         body.append(table(file.entries, false));
-        const when = file.updatedAt ? new Date(file.updatedAt).toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" }) : "unbekannt";
-        body.append(h("p", { class: "muted small", text: `Stand: ${when} · wird stündlich aus den öffentlichen Daten der Spieler aktualisiert.` }));
+        const when = file.updatedAt ? new Date(file.updatedAt).toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" }) : t("ladder.global.unknownDate");
+        body.append(h("p", { class: "muted small", text: t("ladder.global.updated", { when }) }));
       },
       () => {
         if (tab !== "global") return;
-        status.textContent = "Die globale Rangliste ist gerade nicht erreichbar.";
+        status.textContent = t("ladder.global.unavailable");
       },
     );
   };
@@ -97,8 +98,8 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
     resetButton.hidden = tab !== "local";
     intro.textContent =
       tab === "local"
-        ? "Sortiert nach Siegen, dann Zielgenauigkeit, dann verursachtem Schaden. Gespeichert wird nur auf diesem Gerät."
-        : "Alle Spieler, die sich angemeldet haben und teilnehmen. Gleiche Sortierung wie lokal.";
+        ? t("ladder.intro.local")
+        : t("ladder.intro.global");
   };
 
   const tabBtn = (id: Tab, text: string): HTMLButtonElement =>
@@ -111,15 +112,15 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
         draw();
       },
     });
-  const tabs = { local: tabBtn("local", "Lokal"), global: tabBtn("global", "Global") };
+  const tabs = { local: tabBtn("local", t("ladder.tab.local")), global: tabBtn("global", t("ladder.tab.global")) };
   const intro = h("p", { class: "muted" });
-  const resetButton = h("button", { class: "btn btn-danger", type: "button", text: "Rangliste zurücksetzen", onclick: () => void reset() });
+  const resetButton = h("button", { class: "btn btn-danger", type: "button", text: t("ladder.reset"), onclick: () => void reset() });
 
   const rename = async (playerId: string, current: string): Promise<void> => {
-    const name = await promptDialog("Neuer Anzeigename (die Spieler-ID bleibt gleich):", current);
+    const name = await promptDialog(t("ladder.renamePrompt"), current);
     if (name === null || name === current) return;
     if (!store.renamePlayer(playerId, name)) {
-      await confirmDialog("Dieser Name ist bereits vergeben.", "OK", "Schließen");
+      await confirmDialog(t("ladder.nameTaken"), t("dialog.ok"), t("dialog.close"));
       return;
     }
     draw();
@@ -127,8 +128,8 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
 
   const reset = async (): Promise<void> => {
     const ok = await confirmDialog(
-      "Rangliste wirklich zurücksetzen? Alle gespeicherten Siege, Niederlagen und Statistiken gehen verloren.",
-      "Zurücksetzen",
+      t("ladder.resetConfirm"),
+      t("ladder.resetAction"),
     );
     if (ok) {
       store.reset();
@@ -141,14 +142,14 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
     h(
       "section",
       { class: "panel wide" },
-      h("h2", { text: "Rangliste" }),
+      h("h2", { text: t("ladder.title") }),
       h("div", { class: "tabs" }, tabs.local, tabs.global),
       intro,
       body,
       h(
         "div",
         { class: "row" },
-        h("button", { class: "btn", type: "button", text: "Zurück zum Menü", onclick: opts.onBack }),
+        h("button", { class: "btn", type: "button", text: t("common.backToMenu"), onclick: opts.onBack }),
         resetButton,
       ),
     ),

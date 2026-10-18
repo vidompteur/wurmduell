@@ -1,5 +1,6 @@
 import type { Game } from "../game/Game";
 import type { GameEvent } from "../game/GameState";
+import { t } from "../i18n";
 import { h } from "../ui/dom";
 import type { WeaponId } from "../types";
 import { WEAPONS, WEAPON_ORDER } from "../weapons/weapons";
@@ -25,18 +26,11 @@ interface Slot {
  * DOM-Overlay über dem Canvas: Teams, aktiver Wurm, Zugzeit, Wind,
  * Schussstärke und Waffenleiste. Schreibt nur ins DOM, wenn sich Werte ändern.
  */
-const LEGEND: ReadonlyArray<readonly [string, string]> = [
-  ["← →", "laufen"],
-  ["↑ ↓", "zielen"],
-  ["Leertaste", "halten = laden, loslassen = feuern"],
-  ["1–5", "Waffe"],
-  ["+ −", "zoomen"],
-  ["Esc", "Pause"],
-];
+const LEGEND_ITEMS = ["move", "aim", "fire", "weapon", "zoom", "pause"] as const;
 
 function buildLegend(): HTMLElement {
-  const list = h("ul", { class: "legend", title: "Steuerung" });
-  for (const [key, text] of LEGEND) list.append(h("li", {}, h("kbd", { text: key }), h("span", { text })));
+  const list = h("ul", { class: "legend", title: t("legend.title") });
+  for (const id of LEGEND_ITEMS) list.append(h("li", {}, h("kbd", { text: t(`legend.${id}.key`) }), h("span", { text: t(`legend.${id}.text`) })));
   return list;
 }
 
@@ -88,11 +82,11 @@ export class Hud {
         {
           class: "slot",
           type: "button",
-          title: `${def.name} (Taste ${def.key})`,
+          title: t("hud.weaponTitle", { name: t(`weapon.${id}`), key: def.key }),
           onclick: () => callbacks.onSelectWeapon(id),
         },
         h("span", { class: "key", text: def.key }),
-        h("span", { class: "wname", text: def.name }),
+        h("span", { class: "wname", text: t(`weapon.${id}`) }),
         ammo,
       );
       // Leertaste darf einen fokussierten Button nicht „drücken“.
@@ -115,7 +109,7 @@ export class Hud {
       h(
         "div",
         { class: "wind" },
-        h("span", { class: "wind-label", text: "Wind" }),
+        h("span", { class: "wind-label", text: t("hud.wind") }),
         h("div", { class: "wind-bar" }, this.windLeft, this.windRight),
         this.windText,
       ),
@@ -132,7 +126,7 @@ export class Hud {
     if (e.type === "turnStart") {
       const team = this.game.teams[e.team]!;
       const worm = this.game.worms[e.wormId]!;
-      this.showBanner(`${team.name}: ${worm.name} ist dran`, e.team);
+      this.showBanner(t("hud.turn", { team: team.name, worm: worm.name }), e.team);
     }
   }
 
@@ -160,7 +154,7 @@ export class Hud {
     const team = g.activeTeam;
     const human = team.controller.kind === "human";
     this.set("active", `${worm.id}:${worm.hp}:${g.phase}`, () => {
-      this.active.textContent = `${worm.name} · ${team.name} · ${worm.hp} HP`;
+      this.active.textContent = t("hud.activeInfo", { worm: worm.name, team: team.name, hp: worm.hp });
       this.active.dataset.team = String(team.index);
     });
 
@@ -179,7 +173,7 @@ export class Hud {
       this.windLeft.style.width = `${Math.max(0, -w) * 50}%`;
       this.windRight.style.width = `${Math.max(0, w) * 50}%`;
       const strength = Math.round(Math.abs(w) * 10);
-      this.windText.textContent = strength === 0 ? "windstill" : `${w < 0 ? "◀" : "▶"} ${strength}`;
+      this.windText.textContent = strength === 0 ? t("hud.windless") : `${w < 0 ? "◀" : "▶"} ${strength}`;
     });
 
     const showPower = g.weapon.chargeable && g.phase === "turn" && g.power > 0;
@@ -202,7 +196,7 @@ export class Hud {
         slot.ammo.textContent = ammo;
         slot.root.classList.toggle("selected", selected);
         slot.root.classList.toggle("locked", disabled);
-        slot.root.title = `${def.name} (Taste ${def.key})`;
+        slot.root.title = t("hud.weaponTitle", { name: t(`weapon.${id}`), key: def.key });
       });
     }
   }

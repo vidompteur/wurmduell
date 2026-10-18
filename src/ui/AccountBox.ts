@@ -1,11 +1,12 @@
 import type { Account, AccountView } from "../atproto/Account";
 import { clear, h } from "./dom";
+import { t } from "../i18n";
 
-const STATUS_TEXT: Record<AccountView["status"], string> = {
-  idle: "",
-  syncing: "Synchronisiere …",
-  ok: "Rangliste synchronisiert",
-  error: "Sync fehlgeschlagen",
+const STATUS_KEY: Record<AccountView["status"], string | null> = {
+  idle: null,
+  syncing: "account.status.syncing",
+  ok: "account.status.ok",
+  error: "account.status.error",
 };
 
 /** Dezenter Login-/Statusbereich im Hauptmenü. Gibt Element und Aufräumfunktion zurück. */
@@ -18,10 +19,10 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
 
     if (v.did) {
       el.append(
-        h("p", { class: "account-line" }, h("span", { class: "muted", text: "Angemeldet als " }), h("strong", { text: `@${v.handle ?? v.did}` })),
+        h("p", { class: "account-line" }, h("span", { class: "muted", text: `${t("account.signedInAs")} ` }), h("strong", { text: `@${v.handle ?? v.did}` })),
         h(
           "p",
-          { class: `account-status ${v.status}`, text: STATUS_TEXT[v.status] },
+          { class: `account-status ${v.status}`, text: STATUS_KEY[v.status] ? t(STATUS_KEY[v.status]!) : "" },
         ),
       );
       if (v.error) el.append(h("p", { class: "error", text: v.error }));
@@ -29,15 +30,15 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
         h(
           "div",
           { class: "row" },
-          v.status === "error" ? h("button", { class: "btn", type: "button", text: "Erneut versuchen", onclick: () => void account.sync() }) : "",
-          h("button", { class: "btn", type: "button", text: "Abmelden", onclick: () => void account.signOut() }),
+          v.status === "error" ? h("button", { class: "btn", type: "button", text: t("account.retry"), onclick: () => void account.sync() }) : "",
+          h("button", { class: "btn", type: "button", text: t("account.signOut"), onclick: () => void account.signOut() }),
         ),
       );
       return;
     }
 
     if (!v.available) {
-      el.append(h("p", { class: "muted small", text: "Anmeldung mit ATProto/Eurosky (optional): nur auf der veröffentlichten Seite verfügbar." }));
+      el.append(h("p", { class: "muted small", text: t("account.unavailable") }));
       return;
     }
 
@@ -45,7 +46,7 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
       class: "input",
       type: "text",
       id: "login-handle",
-      placeholder: "name.bsky.social",
+      placeholder: t("account.handlePlaceholder"),
       autocomplete: "username",
     });
     input.setAttribute("autocapitalize", "none");
@@ -58,15 +59,15 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
       h(
         "details",
         { class: "login" },
-        h("summary", { text: "Mit Eurosky / ATProto anmelden (optional)" }),
+        h("summary", { text: t("account.signInSummary") }),
         h(
           "form",
           { class: "login-form", onsubmit: submit },
-          h("label", { htmlFor: "login-handle", class: "muted small", text: "Handle, DID oder PDS-URL" }),
+          h("label", { htmlFor: "login-handle", class: "muted small", text: t("account.handleLabel") }),
           input,
-          h("button", { class: "btn", type: "submit", text: "Anmelden" }),
+          h("button", { class: "btn", type: "submit", text: t("account.signIn") }),
         ),
-        h("p", { class: "muted small", text: "Deine Rangliste wird zusätzlich in deinem eigenen PDS gespeichert. Ohne Anmeldung bleibt alles lokal." }),
+        h("p", { class: "muted small", text: t("account.info") }),
       ),
     );
     if (v.error) el.append(h("p", { class: "error", text: v.error }));

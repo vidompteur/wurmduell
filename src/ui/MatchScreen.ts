@@ -11,6 +11,7 @@ import { Renderer } from "../render/Renderer";
 import { generateMap } from "../terrain/MapGenerator";
 import type { InputState, MatchConfig, MatchResult } from "../types";
 import { clear, confirmDialog, h } from "./dom";
+import { t } from "../i18n";
 
 export interface MatchScreenOptions {
   config: MatchConfig;
@@ -63,7 +64,7 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
       opts.store.recordResult(e.result);
       opts.onRecorded?.(e.result);
       if (leaving) return;
-      const winner = e.result.winner === null ? "Unentschieden!" : `${e.result.teams[e.result.winner]!.name} gewinnt!`;
+      const winner = e.result.winner === null ? t("match.draw") : t("match.winner", { team: e.result.teams[e.result.winner]!.name });
       hud?.showBanner(winner, e.result.winner ?? -1, 3000);
       finishTimer = window.setTimeout(() => {
         if (!disposed) opts.onFinish(e.result);
@@ -130,17 +131,17 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
       h(
         "div",
         { class: "dialog" },
-        h("h2", { text: "Pause" }),
+        h("h2", { text: t("pause.title") }),
         h(
           "div",
           { class: "stack" },
-          h("button", { class: "btn btn-primary", type: "button", text: "Fortsetzen", onclick: closePause }),
+          h("button", { class: "btn btn-primary", type: "button", text: t("pause.resume"), onclick: closePause }),
           h("button", {
             class: "btn",
             type: "button",
-            text: "Aufgeben",
+            text: t("pause.surrender"),
             onclick: () =>
-              void ask("Wirklich aufgeben? Die Partie zählt als Niederlage.", "Aufgeben", () => {
+              void ask(t("pause.surrenderConfirm"), t("pause.surrender"), () => {
                 closePause();
                 game.surrender(humanTeam());
               }),
@@ -148,9 +149,9 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
           h("button", {
             class: "btn",
             type: "button",
-            text: "Zurück zum Menü",
+            text: t("pause.toMenu"),
             onclick: () =>
-              void ask("Zurück zum Menü? Die Partie zählt als Niederlage.", "Zum Menü", () => {
+              void ask(t("pause.toMenuConfirm"), t("pause.toMenuAction"), () => {
                 // Wie Aufgeben: der aktive Mensch verliert, danach direkt ins Menü.
                 leaving = true;
                 game.surrender(humanTeam());

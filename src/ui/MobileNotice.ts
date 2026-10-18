@@ -1,5 +1,6 @@
 import { CONFIG } from "../config";
 import { h } from "./dom";
+import { t } from "../i18n";
 
 /** Touch-Gerät ohne Maus/Tastatur-typische Eingabe (Handy, kleines Tablet). */
 export function isTouchOnlyDevice(): boolean {
@@ -40,13 +41,13 @@ export function showMobileNoticeIfNeeded(): () => void {
     h(
       "div",
       { class: "dialog" },
-      h("h2", { text: "Nur für den Desktop" }),
-      h("p", { text: "Wurmduell ist für Computer gedacht und braucht eine Tastatur (Pfeiltasten und Leertaste). Auf dem Handy lässt es sich nicht richtig spielen." }),
+      h("h2", { text: t("mobile.title") }),
+      h("p", { text: t("mobile.text") }),
       h(
         "div",
         { class: "stack" },
-        h("button", { class: "btn btn-primary", type: "button", text: "Verstanden", onclick: close }),
-        h("button", { class: "btn", type: "button", text: "Mir doch egal", onclick: ignore }),
+        h("button", { class: "btn btn-primary", type: "button", text: t("mobile.ok"), onclick: close }),
+        h("button", { class: "btn", type: "button", text: t("mobile.ignore"), onclick: ignore }),
       ),
     ),
   );
