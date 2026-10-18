@@ -79,6 +79,8 @@ export class Hud {
 
     const weapons = h("div", { class: "weapons" });
     for (const id of WEAPON_ORDER) {
+      // Pure-Modus: nur die Bazooka wird angezeigt.
+      if (game.config.pure && id !== "bazooka") continue;
       const def = WEAPONS[id];
       const ammo = h("span", { class: "ammo" });
       const btn = h(
@@ -187,7 +189,8 @@ export class Hud {
     });
 
     for (const id of WEAPON_ORDER) {
-      const slot = this.slots.get(id)!;
+      const slot = this.slots.get(id);
+      if (!slot) continue;
       const def = WEAPONS[id];
       const left = team.ammo[id];
       const selected = team.selectedWeapon === id;

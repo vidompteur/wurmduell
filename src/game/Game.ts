@@ -87,10 +87,11 @@ export class Game {
       wormIds: [],
       ammo: {
         bazooka: Number.POSITIVE_INFINITY,
-        grenade: Number.POSITIVE_INFINITY,
-        dynamite: WEAPONS.dynamite.ammo ?? Number.POSITIVE_INFINITY,
-        shotgun: Number.POSITIVE_INFINITY,
-        teleport: config.teleports ?? WEAPONS.teleport.ammo ?? Number.POSITIVE_INFINITY,
+        // Pure-Modus: nur Bazooka, alle anderen Waffen sind nicht verfügbar.
+        grenade: config.pure ? 0 : Number.POSITIVE_INFINITY,
+        dynamite: config.pure ? 0 : (WEAPONS.dynamite.ammo ?? Number.POSITIVE_INFINITY),
+        shotgun: config.pure ? 0 : Number.POSITIVE_INFINITY,
+        teleport: config.pure ? 0 : (config.teleports ?? WEAPONS.teleport.ammo ?? Number.POSITIVE_INFINITY),
       },
       selectedWeapon: "bazooka" as WeaponId,
     }));

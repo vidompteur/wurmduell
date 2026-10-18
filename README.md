@@ -19,6 +19,10 @@ Rundenbasiertes Artillerie-Spiel für zwei Teams (2–3 Würmer pro Team): im Ho
 
 Verlässt du eine laufende Partie (Browser oder Tab schließen, Seite neu laden), wird sie gewertet: Es verliert das Team mit weniger Rest-Lebenspunkten, bei Gleichstand das Team, das geht. „Zurück zum Menü“ zählt immer als Niederlage.
 
+**Wurmduell pure:** Im Match-Setup lässt sich die Checkbox „Wurmduell pure: nur Bazooka, keine weiteren Waffen“ aktivieren. Dann gibt es weder Granate, Dynamit, Shotgun noch Teleport; die Waffenleiste zeigt nur die Bazooka. Standard in `src/config.ts` unter `rules.pure`.
+
+**Handys:** Beim Laden auf Touch-Geräten erscheint ein Hinweis, dass Wurmduell für den Desktop gedacht ist und eine Tastatur braucht. Abschaltbar über `hud.mobileNotice` in `src/config.ts`.
+
 Im Spiel blendet oben links eine dezente Legende diese Tasten ein.
 
 ## Einstellungen
@@ -37,7 +41,7 @@ Alle Defaults stehen zentral in [`src/config.ts`](src/config.ts):
 |---|---|
 | `view` | Standard-Zoom (`zoomDefault`, aktuell 1,4), Zoom-Min/-Max, Reglerschritt, Zoom-Faktor pro Tastendruck, maximale Pixeldichte |
 | `audio` | Ton an/aus, Lautstärke |
-| `hud` | Steuerungs-Legende an/aus |
+| `hud` | Steuerungs-Legende an/aus, Handy-Hinweis an/aus |
 | `rules` | Teleports pro Team (`teleports`, Standard 1), Bazooka-Reichweite (`bazookaRange`, 1,3× Original) |
 | `setup` | Vorbelegung im Match-Setup (Modus, KI-Stärke, Teamgröße, Spielernamen) |
 

@@ -67,6 +67,19 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
   teleports.value = String(last.teleports);
 
   const account = opts.account.did ? opts.account : null;
+  const pure = h("input", { id: "pure", type: "checkbox", checked: last.pure });
+  const pureField = h(
+    "div",
+    { class: "field check" },
+    pure,
+    h("label", { htmlFor: "pure", text: "Wurmduell pure: nur Bazooka, keine weiteren Waffen" }),
+  );
+  const syncPure = (): void => {
+    teleports.disabled = pure.checked;
+  };
+  pure.addEventListener("change", syncPure);
+  syncPure();
+
   const name1 = h("input", { id: "name1", class: "input", type: "text", maxLength: 64, value: account ? `@${account.handle ?? account.did}` : last.names[0], list: "known-players", autocomplete: "off" });
   if (account) name1.readOnly = true;
   const name2 = h("input", { id: "name2", class: "input", type: "text", maxLength: 20, value: last.names[1], list: "known-players", autocomplete: "off" });
@@ -110,9 +123,9 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
       team2 = { name: `Computer (${AI_LABEL[level]})`, controller: { kind: "ai", level }, wormNames: wormsB };
     }
 
-    opts.settings.lastSetup = { mode: m, aiLevel: level, wormsPerTeam, teleports: teleportCount, names: [account ? last.names[0] : p1.name, n2 || last.names[1]] };
+    opts.settings.lastSetup = { mode: m, aiLevel: level, wormsPerTeam, teleports: teleportCount, pure: pure.checked, names: [account ? last.names[0] : p1.name, n2 || last.names[1]] };
     saveSettings(opts.settings);
-    opts.onStart({ mode: m, wormsPerTeam, teleports: teleportCount, teams: [team1, team2] });
+    opts.onStart({ mode: m, wormsPerTeam, teleports: teleportCount, pure: pure.checked, teams: [team1, team2] });
   };
 
   const help = h(
@@ -143,6 +156,7 @@ export function renderSetup(root: HTMLElement, opts: SetupOptions): () => void {
         h("div", { class: "field" }, h("label", { htmlFor: "mode", text: "Modus" }), mode),
         aiField,
         h("div", { class: "field" }, h("label", { htmlFor: "size", text: "Teamgröße" }), size),
+        pureField,
         h("div", { class: "field" }, h("label", { htmlFor: "teleports", text: "Teleports" }), teleports),
         h("div", { class: "field" }, h("label", { htmlFor: "name1", text: account ? "Spieler 1 (angemeldet)" : "Spieler 1" }), name1),
         name2Field,

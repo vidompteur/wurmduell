@@ -28,6 +28,8 @@ export const CONFIG = {
   hud: {
     /** Dezente Steuerungs-Legende im Spiel anzeigen. */
     showLegend: true,
+    /** Hinweis beim Laden auf Touch-Geräten: Wurmduell ist für Desktop mit Tastatur gedacht. */
+    mobileNotice: true,
   },
   rules: {
     /**
@@ -37,6 +39,8 @@ export const CONFIG = {
     bazookaRange: 1.3,
     /** Teleports pro Team und Partie (im Match-Setup einstellbar). */
     teleports: 1,
+    /** „Wurmduell pure“: nur Bazooka, keine weiteren Waffen (im Match-Setup wählbar). */
+    pure: false,
     /** Höchstwert, der im Match-Setup angeboten wird. */
     teleportsMax: 3,
   },

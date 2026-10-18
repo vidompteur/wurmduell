@@ -22,6 +22,8 @@ export interface MatchConfig {
   wormsPerTeam: 2 | 3;
   /** Teleports pro Team (Standard: `CONFIG.rules.teleports`). */
   teleports?: number;
+  /** „Pure“-Modus: nur die Bazooka ist verfügbar. */
+  pure?: boolean;
   /** Optional: fester Seed (Tests/Debug). Sonst wird pro Partie ein neuer erzeugt. */
   seed?: string;
   teams: [TeamConfig, TeamConfig];
@@ -94,6 +96,7 @@ export interface Settings {
     aiLevel: AiLevel;
     wormsPerTeam: 2 | 3;
     teleports: number;
+    pure: boolean;
     names: [string, string];
   };
 }

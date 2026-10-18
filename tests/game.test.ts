@@ -224,6 +224,21 @@ describe("Spielregeln", () => {
     expect(WEAPONS.bazooka.maxSpeed ** 2 / 1150 ** 2).toBeCloseTo(1.3, 5);
   });
 
+  it("Pure-Modus: nur die Bazooka ist verfügbar", () => {
+    const { game } = (() => {
+      const g = new Game(config({ pure: true }), mulberry32(1), flatMap(), () => {});
+      return { game: g };
+    })();
+    expect(game.isWeaponAvailable(0, "bazooka")).toBe(true);
+    for (const w of ["grenade", "dynamite", "shotgun", "teleport"] as const) {
+      expect(game.isWeaponAvailable(0, w)).toBe(false);
+      expect(game.isWeaponAvailable(1, w)).toBe(false);
+    }
+    expect(game.selectWeapon("grenade")).toBe(false);
+    expect(game.selectWeapon("teleport")).toBe(false);
+    expect(game.activeTeam.selectedWeapon).toBe("bazooka");
+  });
+
   it("Dynamit ist begrenzt", () => {
     const { game } = makeGame();
     expect(game.activeTeam.ammo.dynamite).toBe(3);

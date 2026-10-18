@@ -7,6 +7,7 @@ import { renderMenu, renderSettings } from "./ui/Menu";
 import { renderSetup } from "./ui/MatchSetup";
 import { showMatch } from "./ui/MatchScreen";
 import type { MatchHandle } from "./ui/MatchScreen";
+import { showMobileNoticeIfNeeded } from "./ui/MobileNotice";
 import { renderResult } from "./ui/ResultScreen";
 import { loadSettings } from "./ui/settings";
 import type { AiLevel, MatchConfig, MatchResult } from "./types";
@@ -87,6 +88,7 @@ function toResult(result: MatchResult, config: MatchConfig): void {
 }
 
 toMenu();
+showMobileNoticeIfNeeded();
 // Optionales ATProto-Konto im Hintergrund wiederherstellen; das Spiel startet unabhängig davon.
 void account.restore();
 
