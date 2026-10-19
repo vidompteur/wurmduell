@@ -1,5 +1,6 @@
 import "./styles.css";
 import { Account } from "./atproto/Account";
+import { initTelemetry, logMatch } from "./telemetry";
 import { Sound } from "./audio/Sound";
 import { LadderStore } from "./ladder/LadderStore";
 import { renderLadder } from "./ladder/LadderUi";
@@ -61,7 +62,10 @@ function toMatch(config: MatchConfig): MatchHandle {
       sound,
       zoom: settings.zoom,
       showLegend: settings.showLegend,
-      onRecorded: (result) => account.onMatchFinished(result),
+      onRecorded: (result) => {
+        account.onMatchFinished(result);
+        logMatch(result);
+      },
       onFinish: (result) => toResult(result, config),
       onExit: toMenu,
     });
@@ -91,6 +95,7 @@ toMenu();
 showMobileNoticeIfNeeded();
 // Optionales ATProto-Konto im Hintergrund wiederherstellen; das Spiel startet unabhängig davon.
 void account.restore();
+initTelemetry();
 
 // Debug-/Testzugang nur mit ?debug in der URL.
 if (new URLSearchParams(location.search).has("debug")) {

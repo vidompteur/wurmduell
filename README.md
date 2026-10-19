@@ -60,15 +60,27 @@ Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem
 
 Code: `src/atproto/` (`auth.ts` OAuth, `Account.ts` Zustand, `sync.ts` Abgleich und Queue, `records.ts` Records und Merge-Regel).
 
+## Logging mit Sentry (optional)
+
+Mit einem Sentry-DSN in `src/config.ts` (`sentry.dsn`) meldet das Spiel:
+
+- **Fehler:** unerwartete Browser-Fehler sowie abgefangene Login-, Session- und Sync-Fehler (Tag `where`, z. B. `atproto.signIn`).
+- **Logins:** Meldung „Login“ mit Nutzerdaten (DID und Handle); der Nutzer hängt danach an allen weiteren Meldungen und wird beim Abmelden gelöscht.
+- **Match-Ergebnisse:** Meldung „Match beendet“ mit Modus, Sieger, Dauer, Karten-Seed und Statistik beider Teams (Namen, Spieler-ID/DID bzw. KI-Stufe).
+
+Ohne DSN (Standard) wird nichts geladen oder gesendet. Es werden keine IP-Adressen oder Performance-Daten erhoben (`sendDefaultPii: false`, `tracesSampleRate: 0`). Der DSN ist öffentlich; trage in Sentry unter den Projekteinstellungen die erlaubten Domains ein. **Datenschutz:** Namen, DIDs und Ergebnisse sind personenbezogene Daten. Weise Spieler:innen darauf hin (Datenschutzerklärung) und prüfe die Aufbewahrungsdauer in Sentry. Code: `src/telemetry.ts`.
+
 ## Globale Rangliste
 
 Unter **Rangliste → Global** steht die Rangliste aller teilnehmenden Spieler. Sie ist eine statische Datei (`public/ladder.json`), die ein Skript aus den öffentlichen `de.wurmduell.ladderSummary`-Records der Spieler erzeugt (Spieler müssen dafür mindestens einmal angemeldet gespielt haben).
 
-**Mitmachen:** Handle oder DID in `public/players.json` eintragen (Pull Request genügt):
+**Mitmachen:** Einfach im Spiel anmelden und eine Partie spielen. Das Skript fragt den Bluesky-Relay (`com.atproto.sync.listReposByCollection`) nach allen Konten mit einer `de.wurmduell.ladderSummary` und nimmt sie bei der nächsten Aktualisierung automatisch auf. Zusätzlich kannst du in `public/players.json` Konten von Hand eintragen (`players`) oder sperren (`blocked`, Handle oder DID):
 
 ```json
-{ "players": ["nils.bsky.social", "did:plc:abc123"] }
+{ "players": ["nils.bsky.social"], "blocked": ["did:plc:abc123"] }
 ```
+
+Antwortet der Relay nicht, nutzt das Skript nur `players.json` (steht im Log als „Relay-Fehler“).
 
 **Aktualisieren:**
 
@@ -88,6 +100,7 @@ Nicht in der Datei stehen die statischen Texte in `index.html` (Seitentitel, Bes
 ```text
 src/config.ts      Standardwerte (siehe oben)
 src/i18n/          zentrale Texte (de.properties) und t()-Funktion
+src/telemetry.ts   optionales Sentry-Logging (Fehler, Login, Match-Ergebnisse)
 src/game/          Spiellogik ohne DOM (Game, TurnManager, Konstanten, RNG)
 src/terrain/       Kartengenerator und zerstörbares Gelände
 src/entities/      Würmer und Projektile

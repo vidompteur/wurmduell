@@ -1,12 +1,13 @@
 /**
- * Baut `public/ladder.json` aus den öffentlichen Ladder-Summaries der Spieler in `public/players.json`.
+ * Baut `public/ladder.json` aus den öffentlichen Ladder-Summaries aller Spieler: automatisch gefundene Konten
+ * (Relay-Abfrage nach der Collection) plus die Einträge in `public/players.json`; `blocked` dort sperrt Konten.
  * Aufruf: `npm run ladder:build`. Läuft unter Node (tsx) und braucht Netzwerk.
  * Die Datei wird nur neu geschrieben, wenn sich Einträge geändert haben (kein Commit-Rauschen).
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { type FetchLike, buildGlobalEntries, parseGlobalLadder } from "../src/ladder/globalLadder";
+import { type FetchLike, buildGlobalEntries, discoverPlayers, parseGlobalLadder } from "../src/ladder/globalLadder";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const playersPath = join(root, "public", "players.json");
@@ -22,11 +23,16 @@ function readJson(path: string): unknown {
   }
 }
 
-const rawPlayers = readJson(playersPath) as { players?: unknown } | null;
-const players = Array.isArray(rawPlayers?.players) ? rawPlayers.players.filter((p): p is string => typeof p === "string") : [];
+const rawPlayers = readJson(playersPath) as { players?: unknown; blocked?: unknown } | null;
+const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((p): p is string => typeof p === "string") : []);
+const listed = strings(rawPlayers?.players);
+const blocked = strings(rawPlayers?.blocked);
+const found = await discoverPlayers(fetchFn);
+console.log(`Automatisch gefunden: ${found.dids.length} Konto/Konten${found.error ? ` (Relay-Fehler: ${found.error}, nur players.json wird genutzt)` : ""}`);
+const players = [...new Set([...listed, ...found.dids])];
 const previous = parseGlobalLadder(readJson(ladderPath));
 
-const { entries, report } = await buildGlobalEntries({ players, previous, fetchFn });
+const { entries, report } = await buildGlobalEntries({ players, blocked, previous, fetchFn });
 for (const line of report) console.log(`${line.status.padEnd(11)} ${line.input}${line.did ? ` (${line.did})` : ""} – ${line.message}`);
 
 const failed = report.filter((l) => l.status === "error").length;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_GLOBAL_LADDER, type FetchLike, buildGlobalEntries, isPlausible, parseGlobalLadder } from "../src/ladder/globalLadder";
+import { EMPTY_GLOBAL_LADDER, type FetchLike, buildGlobalEntries, discoverPlayers, isPlausible, parseGlobalLadder } from "../src/ladder/globalLadder";
 
 const summary = (over: Record<string, unknown> = {}) => ({
   matches: 10, wins: 6, losses: 4, shotsFired: 40, shotsHit: 20, damageDealt: 900, damageTaken: 700,
@@ -77,5 +77,38 @@ describe("Globale Ladder", () => {
     expect(f.entries).toHaveLength(1);
     expect(f.entries[0]).toMatchObject({ handle: "a.test", wins: 2, name: "a.test" });
     expect(isPlausible({ ...f.entries[0]!, wins: 5 })).toBe(false);
+  });
+
+  it("sperrt Konten aus der Sperrliste (Handle oder DID)", async () => {
+    const net = fakeNet([
+      { did: "did:plc:a", handle: "anna.test", value: summary() },
+      { did: "did:plc:b", handle: "ben.test", value: summary() },
+    ]);
+    const { entries, report } = await buildGlobalEntries({ players: ["anna.test", "ben.test"], blocked: ["did:plc:b"], previous: EMPTY_GLOBAL_LADDER, fetchFn: net });
+    expect(entries.map((e) => e.handle)).toEqual(["anna.test"]);
+    expect(/gesperrt/.test(report.find((l) => l.input === "ben.test")?.message ?? "")).toBe(true);
+  });
+
+  describe("discoverPlayers", () => {
+    const res = (status: number, body: unknown) => Promise.resolve({ ok: status === 200, status, json: async () => body });
+
+    it("liest alle Seiten der Relay-Abfrage", async () => {
+      const seen: string[] = [];
+      const fetchFn: FetchLike = (url) => {
+        seen.push(url);
+        const cursor = new URL(url).searchParams.get("cursor");
+        return cursor ? res(200, { repos: [{ did: "did:plc:c" }] }) : res(200, { cursor: "next", repos: [{ did: "did:plc:a" }, { did: "did:plc:b" }] });
+      };
+      const out = await discoverPlayers(fetchFn);
+      expect(out).toEqual({ dids: ["did:plc:a", "did:plc:b", "did:plc:c"], error: null });
+      expect(seen[0]?.includes("collection=de.wurmduell.ladderSummary")).toBe(true);
+    });
+
+    it("liefert bei Relay-Fehlern keine Konten, aber auch keinen Abbruch", async () => {
+      const failed = await discoverPlayers(() => res(500, null));
+      expect(failed.dids).toEqual([]);
+      expect(failed.error?.includes("500")).toBe(true);
+      expect(await discoverPlayers(() => Promise.reject(new Error("offline")))).toEqual({ dids: [], error: "offline" });
+    });
   });
 });

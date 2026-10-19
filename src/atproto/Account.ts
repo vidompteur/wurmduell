@@ -4,6 +4,7 @@ import { type AtSession, createPdsClient, loginAvailable, resolveHandle, restore
 import { matchRecordsForAccount } from "./records";
 import { SyncQueue, syncAccount } from "./sync";
 import { t } from "../i18n";
+import { logLogin, logLogout, reportError } from "../telemetry";
 
 function errorDetail(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -61,6 +62,7 @@ export class Account {
       await this.adopt(session);
     } catch (error) {
       console.warn("Keine gültige ATProto-Session", error);
+      reportError(error, "atproto.restore");
       this.session = null;
       this.error = t("account.error.restore", { detail: errorDetail(error) });
       this.emit();
@@ -81,6 +83,7 @@ export class Account {
       await signIn(clean);
     } catch (error) {
       console.warn("Login abgebrochen", error);
+      reportError(error, "atproto.signIn", { handle: clean });
       this.error = t("account.error.signIn", { detail: errorDetail(error) });
       this.emit();
     }
@@ -89,6 +92,7 @@ export class Account {
   /** Session beenden; lokale Ladder-Daten bleiben erhalten. */
   async signOut(): Promise<void> {
     const session = this.session;
+    logLogout();
     this.session = null;
     this.handle = null;
     this.status = "idle";
@@ -127,6 +131,7 @@ export class Account {
         this.status = "ok";
       } catch (error) {
         console.warn("PDS-Sync fehlgeschlagen", error);
+        reportError(error, "atproto.sync", { did: session.sub });
         this.status = "error";
         this.error = t("account.error.sync");
       } finally {
@@ -142,6 +147,7 @@ export class Account {
     this.handle = (await resolveHandle(session)) ?? session.sub;
     this.store.bindAccount(session.sub, this.handle, ` ${t("account.nameSuffix")}`);
     this.emit();
+    logLogin(session.sub, this.handle);
     await this.sync();
   }
 }

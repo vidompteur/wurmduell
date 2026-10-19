@@ -70,6 +70,8 @@ export interface ReportLine {
 export interface BuildOptions {
   /** Handles oder DIDs aus `players.json`. */
   players: readonly string[];
+  /** Gesperrte Handles oder DIDs (werden nie aufgenommen). */
+  blocked?: readonly string[];
   /** Vorheriger Stand: dient als Rückfall, wenn ein PDS gerade nicht antwortet. */
   previous: GlobalLadderFile;
   fetchFn: FetchLike;
@@ -117,16 +119,48 @@ async function loadDidDoc(fetchFn: FetchLike, did: string): Promise<{ pds: strin
   return { pds, handle: typeof aka === "string" ? aka.slice("at://".length) : null };
 }
 
+const RELAY_LIST = "https://relay1.us-east.bsky.network/xrpc/com.atproto.sync.listReposByCollection";
+const MAX_DISCOVERY_PAGES = 10;
+
+/**
+ * Findet alle Konten, die mindestens eine Ranglisten-Zusammenfassung veröffentlicht haben
+ * (Relay-Abfrage nach Collection). Wirft nie: bei Fehlern kommt, was bis dahin gefunden wurde.
+ */
+export async function discoverPlayers(fetchFn: FetchLike): Promise<{ dids: string[]; error: string | null }> {
+  const dids: string[] = [];
+  let cursor: string | undefined;
+  try {
+    for (let page = 0; page < MAX_DISCOVERY_PAGES; page++) {
+      const url = `${RELAY_LIST}?collection=${SUMMARY_COLLECTION}&limit=500${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`;
+      const { status, body } = await getJson(fetchFn, url);
+      const repos = (body as { repos?: unknown } | null)?.repos;
+      if (status !== 200 || !Array.isArray(repos)) return { dids, error: `Relay antwortete mit Status ${status}` };
+      for (const r of repos as { did?: unknown }[]) if (typeof r.did === "string" && r.did.startsWith("did:")) dids.push(r.did);
+      const next = (body as { cursor?: unknown }).cursor;
+      if (typeof next !== "string" || next === "" || repos.length === 0) break;
+      cursor = next;
+    }
+    return { dids, error: null };
+  } catch (error) {
+    return { dids, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 /** Holt für alle Spieler die Ladder-Summary und baut die sortierte Eintragsliste. Wirft nie pro Spieler. */
 export async function buildGlobalEntries(opts: BuildOptions): Promise<{ entries: GlobalLadderEntry[]; report: ReportLine[] }> {
   const { fetchFn, previous } = opts;
   const entries = new Map<string, GlobalLadderEntry>();
   const report: ReportLine[] = [];
+  const blocked = new Set((opts.blocked ?? []).map((p) => p.trim().replace(/^@/, "").toLowerCase()));
 
   for (const input of new Set(opts.players.map((p) => p.trim().replace(/^@/, "")).filter(Boolean))) {
     let did: string | undefined;
     try {
       did = await resolveDid(fetchFn, input);
+      if (blocked.has(input.toLowerCase()) || blocked.has(did.toLowerCase())) {
+        report.push({ input, did, status: "error", message: "gesperrt (blocked in players.json)" });
+        continue;
+      }
       if (entries.has(did)) {
         report.push({ input, did, status: "ok", message: "doppelt, übersprungen" });
         continue;
