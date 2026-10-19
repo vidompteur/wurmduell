@@ -6,6 +6,8 @@ export interface AtSession {
   /** DID des Kontos – stabile Spieler-ID. */
   readonly sub: string;
   signOut(): Promise<void>;
+  /** Token-Metadaten (Aussteller, PDS, Rechte, Ablauf); nur Information, nie das Token selbst. */
+  getTokenInfo?(refresh?: boolean): Promise<{ iss?: string; aud?: string; scope?: string; expiresAt?: Date | string }>;
 }
 
 type OAuthClient = {
@@ -68,16 +70,29 @@ export async function signIn(handle: string): Promise<void> {
   }
 }
 
-/** Handle zur DID (kann sich ändern, daher nur zur Anzeige). */
-export async function resolveHandle(session: AtSession): Promise<string | null> {
+/** Konto-Details nach dem Login: Handle (nur zur Anzeige) und möglichst viele Metadaten für das Logging. */
+export async function describeAccount(session: AtSession): Promise<{ handle: string | null; details: Record<string, unknown> }> {
+  const details: Record<string, unknown> = { did: session.sub };
+  let handle: string | null = null;
   try {
     const { Agent } = await import("@atproto/api");
     const agent = new Agent(session as never);
     const res = await agent.com.atproto.repo.describeRepo({ repo: session.sub });
-    return res.data.handle ?? null;
-  } catch {
-    return null;
+    handle = res.data.handle ?? null;
+    details.handle = handle;
+    details.handleIsCorrect = res.data.handleIsCorrect;
+    details.didDoc = res.data.didDoc;
+    details.collections = res.data.collections;
+  } catch (error) {
+    details.describeRepoError = error instanceof Error ? error.message : String(error);
   }
+  try {
+    const info = await session.getTokenInfo?.(false);
+    if (info) details.token = { issuer: info.iss, pds: info.aud, scope: info.scope, expiresAt: info.expiresAt instanceof Date ? info.expiresAt.toISOString() : info.expiresAt };
+  } catch {
+    /* Token-Infos sind optional */
+  }
+  return { handle, details };
 }
 
 /** PDS-Zugriff über die angemeldete Session. */

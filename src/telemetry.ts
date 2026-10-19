@@ -11,7 +11,8 @@ interface SentryLike {
   init(options: Record<string, unknown>): void;
   captureException(error: unknown, hint?: Record<string, unknown>): string;
   captureMessage(message: string, hint?: Record<string, unknown>): string;
-  setUser(user: { id: string; username?: string } | null): void;
+  setUser(user: { id: string; username?: string; ip_address?: string } | null): void;
+  setContext(name: string, context: Record<string, unknown> | null): void;
 }
 
 let sentry: Promise<SentryLike | null> | null = null;
@@ -28,8 +29,8 @@ function load(): Promise<SentryLike | null> {
       s.init({
         dsn: CONFIG.sentry.dsn,
         environment: location.hostname === "localhost" ? "development" : "production",
-        // Nur Fehler und unsere eigenen Meldungen, keine Performance-Daten, keine automatischen IP-/Header-Daten.
-        sendDefaultPii: false,
+        // IP-Adresse (von Sentry serverseitig ergänzt) und Request-Header gehören zu den Meldungen; keine Performance-Daten.
+        sendDefaultPii: true,
         tracesSampleRate: 0,
       });
       return s;
@@ -59,11 +60,46 @@ export function reportError(error: unknown, where: string, extra: Record<string,
   run((s) => s.captureException(error, { tags: { where }, extra }));
 }
 
-/** Login (mit Nutzerdaten: DID und Handle) – setzt zugleich den Nutzer für alle weiteren Meldungen. */
-export function logLogin(did: string, handle: string | null): void {
+/** Browser- und Geräteangaben (alles, was der Browser ohne Nachfrage hergibt). */
+export function clientInfo(): Record<string, unknown> {
+  const nav = (typeof navigator === "undefined" ? {} : navigator) as Navigator & { deviceMemory?: number; connection?: { effectiveType?: string; downlink?: number; rtt?: number; saveData?: boolean } };
+  const info: Record<string, unknown> = {
+    userAgent: nav.userAgent,
+    platform: nav.platform,
+    language: nav.language,
+    languages: nav.languages,
+    hardwareConcurrency: nav.hardwareConcurrency,
+    deviceMemory: nav.deviceMemory,
+    maxTouchPoints: nav.maxTouchPoints,
+    online: nav.onLine,
+    connection: nav.connection && { type: nav.connection.effectiveType, downlink: nav.connection.downlink, rtt: nav.connection.rtt, saveData: nav.connection.saveData },
+  };
+  try {
+    info.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    info.timeZoneOffsetMinutes = new Date().getTimezoneOffset();
+  } catch {
+    /* ignorieren */
+  }
+  if (typeof window !== "undefined") {
+    info.screen = `${window.screen?.width}x${window.screen?.height}`;
+    info.viewport = `${window.innerWidth}x${window.innerHeight}`;
+    info.devicePixelRatio = window.devicePixelRatio;
+    info.url = location.href.split("?")[0];
+    info.referrer = document.referrer || undefined;
+  }
+  return info;
+}
+
+/**
+ * Login (mit Nutzerdaten: DID, Handle, PDS, Token-Metadaten, DID-Dokument, Browser-/Gerätedaten, IP durch Sentry).
+ * Setzt zugleich den Nutzer für alle weiteren Meldungen.
+ */
+export function logLogin(did: string, handle: string | null, details: Record<string, unknown> = {}): void {
   run((s) => {
-    s.setUser({ id: did, ...(handle ? { username: handle } : {}) });
-    s.captureMessage("Login", { level: "info", tags: { event: "login" }, extra: { did, handle } });
+    s.setUser({ id: did, ip_address: "{{auto}}", ...(handle ? { username: handle } : {}) });
+    s.setContext("login", { did, handle, ...details });
+    s.setContext("client", clientInfo());
+    s.captureMessage("Login", { level: "info", tags: { event: "login" }, extra: { did, handle, ...details, client: clientInfo() } });
   });
 }
 

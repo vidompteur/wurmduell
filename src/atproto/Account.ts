@@ -1,6 +1,6 @@
 import type { LadderStore } from "../ladder/LadderStore";
 import type { MatchResult } from "../types";
-import { type AtSession, createPdsClient, loginAvailable, resolveHandle, restoreSession, signIn } from "./auth";
+import { type AtSession, createPdsClient, describeAccount, loginAvailable, restoreSession, signIn } from "./auth";
 import { matchRecordsForAccount } from "./records";
 import { SyncQueue, syncAccount } from "./sync";
 import { t } from "../i18n";
@@ -144,10 +144,11 @@ export class Account {
 
   private async adopt(session: AtSession): Promise<void> {
     this.session = session;
-    this.handle = (await resolveHandle(session)) ?? session.sub;
+    const { handle, details } = await describeAccount(session);
+    this.handle = handle ?? session.sub;
     this.store.bindAccount(session.sub, this.handle, ` ${t("account.nameSuffix")}`);
     this.emit();
-    logLogin(session.sub, this.handle);
+    logLogin(session.sub, this.handle, details);
     await this.sync();
   }
 }

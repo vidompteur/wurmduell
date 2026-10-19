@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { telemetryEnabled, initTelemetry, logLogin, logMatch, reportError, matchSummary } from "../src/telemetry";
+import { clientInfo, telemetryEnabled, initTelemetry, logLogin, logMatch, reportError, matchSummary } from "../src/telemetry";
 import type { MatchResult } from "../src/types";
 
 const result = {
@@ -35,5 +35,11 @@ describe("Telemetrie", () => {
     expect(s.durationSeconds).toBe(61);
     expect(s.teams[0]).toMatchObject({ controller: { kind: "human", playerId: "did:plc:a" }, damageDealt: 90 });
     expect(s.teams[1]?.controller).toEqual({ kind: "ai", level: "hard" });
+  });
+
+  it("sammelt Browserangaben auch ohne Browser-Umgebung ohne Fehler", () => {
+    const info = clientInfo();
+    expect(typeof info).toBe("object");
+    expect(typeof info.timeZone).toBe("string");
   });
 });
