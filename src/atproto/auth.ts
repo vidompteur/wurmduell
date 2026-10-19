@@ -46,11 +46,41 @@ function getOAuthClient(): Promise<OAuthClient> {
   return clientPromise;
 }
 
-/** Verarbeitet einen OAuth-Redirect bzw. stellt eine gespeicherte Session wieder her. */
-export async function restoreSession(): Promise<AtSession | null> {
+const CALLBACK_KEYS = ["code", "state", "iss", "error", "error_description"];
+
+/** Entfernt OAuth-Rückgabeparameter (Query und Fragment) aus einer URL; alles andere bleibt. */
+export function cleanCallbackUrl(href: string): string {
+  const url = new URL(href);
+  for (const key of CALLBACK_KEYS) url.searchParams.delete(key);
+  const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
+  if (CALLBACK_KEYS.some((k) => hash.has(k))) {
+    for (const key of CALLBACK_KEYS) hash.delete(key);
+    const rest = hash.toString();
+    url.hash = rest ? `#${rest}` : "";
+  }
+  return url.toString();
+}
+
+let restorePromise: Promise<AtSession | null> | null = null;
+
+async function restoreOnce(): Promise<AtSession | null> {
   const client = await getOAuthClient();
-  const result = await client.init();
-  return result?.session ?? null;
+  try {
+    return (await client.init())?.session ?? null;
+  } catch (error) {
+    // „Unknown authorization session“: Die Rückgabe wurde schon verarbeitet (doppelter Seitenaufruf oder
+    // doppeltes init). Die Anmeldung steht dann meist bereits gespeichert; also Parameter entfernen
+    // und die gespeicherte Session wiederherstellen, statt einen Fehler zu zeigen.
+    if (!/Unknown authorization session/i.test(error instanceof Error ? error.message : String(error))) throw error;
+    history.replaceState(history.state, "", cleanCallbackUrl(location.href));
+    return (await client.init())?.session ?? null;
+  }
+}
+
+/** Verarbeitet einen OAuth-Redirect bzw. stellt eine gespeicherte Session wieder her (pro Seitenaufruf nur einmal). */
+export function restoreSession(): Promise<AtSession | null> {
+  restorePromise ??= restoreOnce();
+  return restorePromise;
 }
 
 /** Leitet zum OAuth-Server des PDS weiter; kehrt normalerweise nicht zurück. */
