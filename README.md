@@ -68,7 +68,7 @@ Mit einem Sentry-DSN in `src/config.ts` (`sentry.dsn`) meldet das Spiel:
 - **Logins:** Meldung „Login“ mit Nutzerdaten: DID, Handle, DID-Dokument, PDS und Token-Metadaten (Aussteller, Rechte, Ablauf – nie das Token selbst), Browser-/Gerätedaten (User-Agent, Sprache, Zeitzone, Bildschirm, Touch, Verbindung, Seiten-URL, Referrer) und die IP-Adresse (ergänzt Sentry serverseitig). Der Nutzer hängt danach an allen weiteren Meldungen und wird beim Abmelden gelöscht.
 - **Match-Ergebnisse:** Meldung „Match beendet“ mit Modus, Sieger, Dauer, Karten-Seed und Statistik beider Teams (Namen, Spieler-ID/DID bzw. KI-Stufe).
 
-Ohne DSN (Standard) wird nichts geladen oder gesendet. Performance-Daten werden nicht erhoben (`tracesSampleRate: 0`); `sendDefaultPii: true` sorgt dafür, dass Sentry IP-Adresse und Header zu den Meldungen speichert. Beim Login zeigt die Oberfläche deshalb einen Hinweis (nur wenn ein DSN gesetzt ist). Der DSN ist öffentlich; trage in Sentry unter den Projekteinstellungen die erlaubten Domains ein. **Datenschutz:** Namen, DIDs und Ergebnisse sind personenbezogene Daten. Weise Spieler:innen darauf hin (Datenschutzerklärung) und prüfe die Aufbewahrungsdauer in Sentry. Code: `src/telemetry.ts`.
+Ohne DSN (Standard) wird nichts geladen oder gesendet. Performance-Daten werden nicht erhoben (`tracesSampleRate: 0`); `sendDefaultPii: true` sorgt dafür, dass Sentry IP-Adresse und Header zu den Meldungen speichert. Der DSN ist öffentlich; trage in Sentry unter den Projekteinstellungen die erlaubten Domains ein. **Datenschutz:** Namen, DIDs und Ergebnisse sind personenbezogene Daten. Weise Spieler:innen darauf hin (Datenschutzerklärung) und prüfe die Aufbewahrungsdauer in Sentry. Code: `src/telemetry.ts`.
 
 ## Globale Rangliste
 

@@ -60,7 +60,7 @@ export const CONFIG = {
      * Sentry-DSN für Fehler-, Login- und Match-Logging. Leer = kein Logging (nichts wird gesendet).
      * Der DSN ist öffentlich (steht im ausgelieferten Code); in Sentry unter „Allowed Domains“ einschränken.
      */
-    dsn: "",
+    dsn: "https://d8ad2307fb3aeb9d222d7992dfb629c6@o4512282391937024.ingest.de.sentry.io/4512282400784464",
   },
   setup: {
     mode: "vsAi" as MatchMode,

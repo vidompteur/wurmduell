@@ -1,7 +1,6 @@
 import type { Account, AccountView } from "../atproto/Account";
 import { clear, h } from "./dom";
 import { t } from "../i18n";
-import { telemetryEnabled } from "../telemetry";
 
 const STATUS_KEY: Record<AccountView["status"], string | null> = {
   idle: null,
@@ -69,7 +68,6 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
           h("button", { class: "btn", type: "submit", text: t("account.signIn") }),
         ),
         h("p", { class: "muted small", text: t("account.info") }),
-        telemetryEnabled() ? h("p", { class: "muted small", text: t("account.telemetry") }) : "",
       ),
     );
     if (v.error) el.append(h("p", { class: "error", text: v.error }));
