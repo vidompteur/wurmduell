@@ -61,7 +61,7 @@ export const CONFIG = {
      * und Source-Token. Host leer = kein Logging (nichts wird gesendet). Der Token steht öffentlich im Code,
      * er erlaubt nur das Einliefern von Logzeilen.
      */
-    host: "" as string,
+    host: "s2801996.us-west-2a.betterstackdata.com" as string,
     token: "8Ytn3XWPzsbJ4Ts9TqGf41BU" as string,
   },
   setup: {
