@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildEvent, clientInfo, telemetryEnabled, initTelemetry, logLogin, logLogout, logMatch, reportError, matchSummary } from "../src/telemetry";
+import { shortAgent, buildEvent, clientInfo, telemetryEnabled, initTelemetry, logLogin, logLogout, logMatch, reportError, matchSummary } from "../src/telemetry";
 import type { MatchResult } from "../src/types";
 
 const result = {
@@ -54,5 +54,12 @@ describe("Telemetrie", () => {
     expect(buildEvent("info", "Danach")).toMatchObject({ user: { did: "did:plc:a", handle: "anna.test" } });
     logLogout();
     expect("user" in buildEvent("info", "Nachher")).toBe(false);
+  });
+
+  it("kürzt den User-Agent auf Browser und Betriebssystem", () => {
+    expect(shortAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:158.0) Gecko/20100101 Firefox/158.0")).toBe("Firefox 158 / macOS");
+    expect(shortAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0")).toBe("Edge 130 / Windows");
+    expect(shortAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1")).toBe("Safari 17 / iOS");
+    expect(shortAgent(undefined)).toBe("unbekannter Browser");
   });
 });

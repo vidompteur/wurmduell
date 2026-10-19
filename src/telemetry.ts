@@ -45,6 +45,26 @@ function log(level: Level, message: string, fields?: Record<string, unknown>): v
 
 const errorText = (e: unknown): { error: string; stack?: string } => (e instanceof Error ? { error: e.message, stack: e.stack } : { error: String(e) });
 
+/** Kurzform des Browsers, z. B. „Firefox 158 / macOS“. */
+export function shortAgent(ua: string | undefined): string {
+  if (!ua) return "unbekannter Browser";
+  const pick = (re: RegExp): string | null => ua.match(re)?.[1]?.split(".")[0] ?? null;
+  const browser =
+    (pick(/Edg\/([\d.]+)/) && `Edge ${pick(/Edg\/([\d.]+)/)}`) ||
+    (pick(/OPR\/([\d.]+)/) && `Opera ${pick(/OPR\/([\d.]+)/)}`) ||
+    (pick(/Firefox\/([\d.]+)/) && `Firefox ${pick(/Firefox\/([\d.]+)/)}`) ||
+    (pick(/Chrome\/([\d.]+)/) && `Chrome ${pick(/Chrome\/([\d.]+)/)}`) ||
+    (pick(/Version\/([\d.]+).*Safari/) && `Safari ${pick(/Version\/([\d.]+).*Safari/)}`) ||
+    "Browser";
+  const os = /Windows/.test(ua) ? "Windows" : /Android/.test(ua) ? "Android" : /iPhone|iPad|iPod/.test(ua) ? "iOS" : /Mac OS X|Macintosh/.test(ua) ? "macOS" : /Linux/.test(ua) ? "Linux" : "?";
+  return `${browser} / ${os}`;
+}
+
+function clock(seconds: number): string {
+  const s = Math.max(0, Math.round(seconds));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
 /** Startet das Logging beim App-Start (globale Fehlerhandler). */
 export function initTelemetry(): void {
   if (started || !telemetryEnabled() || typeof window === "undefined") return;
@@ -52,15 +72,21 @@ export function initTelemetry(): void {
   window.addEventListener("error", (ev) => {
     // Fehler aus Browser-Erweiterungen und fremden Skripten ignorieren.
     if (ev.filename && !ev.filename.startsWith(location.origin)) return;
-    log("error", "Unbehandelter Fehler", { event: "error", where: "window.onerror", ...errorText(ev.error ?? ev.message), file: ev.filename, line: ev.lineno, col: ev.colno });
+    const e = errorText(ev.error ?? ev.message);
+    log("error", `Fehler: window.onerror – ${e.error}${ev.lineno ? ` (Zeile ${ev.lineno})` : ""}`, { event: "error", where: "window.onerror", ...e, file: ev.filename, line: ev.lineno, col: ev.colno });
   });
-  window.addEventListener("unhandledrejection", (ev) => log("error", "Unbehandeltes Promise-Rejection", { event: "error", where: "unhandledrejection", ...errorText(ev.reason) }));
-  log("info", "Seite geladen", { event: "pageview", client: clientInfo() });
+  window.addEventListener("unhandledrejection", (ev) => {
+    const e = errorText(ev.reason);
+    log("error", `Fehler: unhandledrejection – ${e.error}`, { event: "error", where: "unhandledrejection", ...e });
+  });
+  const c = clientInfo();
+  log("info", `Seite geladen – ${shortAgent(c.userAgent as string)}, ${c.screen}, ${c.language}, ${c.timeZone}`, { event: "pageview", client: c });
 }
 
 /** Meldet einen Fehler, den wir selbst abfangen (Login, Sync, …). */
 export function reportError(error: unknown, where: string, extra: Record<string, unknown> = {}): void {
-  log("error", `Fehler: ${where}`, { event: "error", where, ...errorText(error), ...extra });
+  const e = errorText(error);
+  log("error", `Fehler: ${where} – ${e.error}`, { event: "error", where, ...e, ...extra });
 }
 
 /** Browser- und Geräteangaben (alles, was der Browser ohne Nachfrage hergibt). */
@@ -96,11 +122,14 @@ export function clientInfo(): Record<string, unknown> {
 /** Login mit Nutzerdaten (DID, Handle, PDS, Token-Metadaten, DID-Dokument, Browser-/Gerätedaten). Der Nutzer hängt danach an allen weiteren Zeilen. */
 export function logLogin(did: string, handle: string | null, details: Record<string, unknown> = {}): void {
   user = { did, handle };
-  log("info", `Login: ${handle ?? did}`, { event: "login", ...details, client: clientInfo() });
+  const c = clientInfo();
+  const pds = (details.token as { pds?: string } | undefined)?.pds;
+  const host = pds ? new URL(pds).host : null;
+  log("info", `Login: ${handle ?? did}${host ? ` – PDS ${host}` : ""} – ${shortAgent(c.userAgent as string)}, ${c.timeZone}`, { event: "login", handle, did, ...details, client: c });
 }
 
 export function logLogout(): void {
-  log("info", `Logout: ${user?.handle ?? user?.did ?? ""}`, { event: "logout" });
+  log("info", `Logout: ${user?.handle ?? user?.did ?? "unbekannt"}`, { event: "logout" });
   user = null;
 }
 
@@ -127,5 +156,11 @@ export function matchSummary(result: MatchResult): Record<string, unknown> {
 export function logMatch(result: MatchResult): void {
   const s = matchSummary(result);
   const [a, b] = result.teams;
-  log("info", `Match: ${a?.name} vs ${b?.name} – Sieger: ${s.winner ?? "keiner"}`, { event: "match", ...s });
+  const shots = (t: typeof a): string => `${t?.stats.shotsHit}/${t?.stats.shotsFired}`;
+  const extras = [result.config.mode === "vsAi" ? "gegen KI" : "Hotseat", `${result.config.wormsPerTeam} Würmer`, result.config.pure ? "Original-Modus" : "", result.reason === "surrender" ? "Aufgabe" : ""].filter(Boolean).join(", ");
+  log(
+    "info",
+    `Match: ${a?.name} vs ${b?.name} – Sieger: ${s.winner ?? "keiner"} – ${clock(result.durationSeconds)} min, Treffer ${shots(a)} : ${shots(b)}, Schaden ${a?.stats.damageDealt} : ${b?.stats.damageDealt} (${extras})`,
+    { event: "match", ...s },
+  );
 }
