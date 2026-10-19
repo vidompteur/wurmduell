@@ -1,20 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-19T15:28:41.412Z",
+  "updatedAt": "2026-10-19T20:57:56.768Z",
   "entries": [
     {
       "playerId": "did:plc:pywyjwjzdtd4gx5ksd6t6d4c",
       "name": "steini7.eurosky.social",
-      "matches": 32,
+      "matches": 34,
       "wins": 15,
-      "losses": 16,
-      "shotsFired": 341,
-      "shotsHit": 108,
-      "damageDealt": 4345,
-      "damageTaken": 4304,
+      "losses": 18,
+      "shotsFired": 361,
+      "shotsHit": 118,
+      "damageDealt": 4653,
+      "damageTaken": 4557,
       "bestWinStreak": 4,
-      "currentWinStreak": 1,
-      "updatedAt": "2026-10-19T15:27:11.329Z",
+      "currentWinStreak": 0,
+      "updatedAt": "2026-10-19T15:38:02.493Z",
       "handle": "steini7.eurosky.social"
     }
   ]
