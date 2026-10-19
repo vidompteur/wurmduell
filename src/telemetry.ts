@@ -32,6 +32,9 @@ function load(): Promise<SentryLike | null> {
         // IP-Adresse (von Sentry serverseitig ergänzt) und Request-Header gehören zu den Meldungen; keine Performance-Daten.
         sendDefaultPii: true,
         tracesSampleRate: 0,
+        // Bekanntes Rauschen von Browser-Erweiterungen/Übersetzern, nicht aus unserem Code.
+        ignoreErrors: [/has no method 'updateFrom'/],
+        denyUrls: [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-(web-)?extension:\/\//i, /^webkit-masked-url:/i],
       });
       return s;
     })
