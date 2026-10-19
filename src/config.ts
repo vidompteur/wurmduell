@@ -55,12 +55,14 @@ export const CONFIG = {
      */
     clientId: "",
   },
-  sentry: {
+  logs: {
     /**
-     * Sentry-DSN für Fehler-, Login- und Match-Logging. Leer = kein Logging (nichts wird gesendet).
-     * Der DSN ist öffentlich (steht im ausgelieferten Code); in Sentry unter „Allowed Domains“ einschränken.
+     * Better Stack Logs (HTTP-Ingest): „Ingesting host“ der Quelle (z. B. `s123456.eu-nbg-2.betterstackdata.com`)
+     * und Source-Token. Host leer = kein Logging (nichts wird gesendet). Der Token steht öffentlich im Code,
+     * er erlaubt nur das Einliefern von Logzeilen.
      */
-    dsn: "https://d8ad2307fb3aeb9d222d7992dfb629c6@o4512282391937024.ingest.de.sentry.io/4512282400784464" as string,
+    host: "" as string,
+    token: "8Ytn3XWPzsbJ4Ts9TqGf41BU" as string,
   },
   setup: {
     mode: "vsAi" as MatchMode,

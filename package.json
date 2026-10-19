@@ -14,8 +14,7 @@
   },
   "dependencies": {
     "@atproto/api": "^0.28.0",
-    "@atproto/oauth-client-browser": "^0.5.10",
-    "@sentry/browser": "^10.0.0"
+    "@atproto/oauth-client-browser": "^0.5.10"
   },
   "devDependencies": {
     "tsx": "^4.20.0",

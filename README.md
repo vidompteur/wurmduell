@@ -60,15 +60,18 @@ Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem
 
 Code: `src/atproto/` (`auth.ts` OAuth, `Account.ts` Zustand, `sync.ts` Abgleich und Queue, `records.ts` Records und Merge-Regel).
 
-## Logging mit Sentry (optional)
+## Logging mit Better Stack (optional)
 
-Mit einem Sentry-DSN in `src/config.ts` (`sentry.dsn`) meldet das Spiel:
+Das Spiel kann Logzeilen an [Better Stack Logs](https://betterstack.com/docs/logs/ingesting-data/http/logs/) schicken (einfacher HTTP-POST, kein SDK). In `src/config.ts` unter `logs` den **Ingesting host** und den **Source-Token** der Quelle eintragen; ohne Host wird nichts gesendet.
 
-- **Fehler:** unerwartete Browser-Fehler sowie abgefangene Login-, Session- und Sync-Fehler (Tag `where`, z. B. `atproto.signIn`).
-- **Logins:** Meldung „Login“ mit Nutzerdaten: DID, Handle, DID-Dokument, PDS und Token-Metadaten (Aussteller, Rechte, Ablauf – nie das Token selbst), Browser-/Gerätedaten (User-Agent, Sprache, Zeitzone, Bildschirm, Touch, Verbindung, Seiten-URL, Referrer) und die IP-Adresse (ergänzt Sentry serverseitig). Der Nutzer hängt danach an allen weiteren Meldungen und wird beim Abmelden gelöscht.
-- **Match-Ergebnisse:** Meldung „Match beendet“ mit Modus, Sieger, Dauer, Karten-Seed und Statistik beider Teams (Namen, Spieler-ID/DID bzw. KI-Stufe).
+Jede Zeile ist ein JSON-Objekt mit `dt`, `level`, `message`, Sitzungs-ID und, nach dem Login, dem Nutzer (`user.did`, `user.handle`). Das Feld `event` unterscheidet:
 
-Ohne DSN (Standard) wird nichts geladen oder gesendet. Performance-Daten werden nicht erhoben (`tracesSampleRate: 0`); `sendDefaultPii: true` sorgt dafür, dass Sentry IP-Adresse und Header zu den Meldungen speichert. Der DSN ist öffentlich; trage in Sentry unter den Projekteinstellungen die erlaubten Domains ein. **Datenschutz:** Namen, DIDs und Ergebnisse sind personenbezogene Daten. Weise Spieler:innen darauf hin (Datenschutzerklärung) und prüfe die Aufbewahrungsdauer in Sentry. Code: `src/telemetry.ts`.
+- `pageview`: Seite geladen, mit Browser-/Gerätedaten (User-Agent, Sprache, Zeitzone, Bildschirm, Touch, Verbindung, URL, Referrer).
+- `login` / `logout`: DID, Handle, DID-Dokument, PDS und Token-Metadaten (Aussteller, Rechte, Ablauf – nie das Token selbst).
+- `match`: Modus, Sieger, Dauer, Karten-Seed und Statistik beider Teams (Namen, Spieler-ID/DID bzw. KI-Stufe).
+- `error`: unbehandelte Fehler sowie abgefangene Login-, Session- und Sync-Fehler (`where`, z. B. `atproto.signIn`).
+
+Der Token steht öffentlich im Code und erlaubt nur das Einliefern; jemand könnte also Zeilen vortäuschen. Pro Seitenaufruf werden höchstens 100 Zeilen gesendet. **Datenschutz:** Namen, DIDs und Ergebnisse sind personenbezogene Daten; weise Spieler:innen darauf hin und prüfe die Aufbewahrungsdauer bei Better Stack. Code: `src/telemetry.ts`.
 
 ## Globale Rangliste
 
@@ -100,7 +103,7 @@ Nicht in der Datei stehen die statischen Texte in `index.html` (Seitentitel, Bes
 ```text
 src/config.ts      Standardwerte (siehe oben)
 src/i18n/          zentrale Texte (de.properties) und t()-Funktion
-src/telemetry.ts   optionales Sentry-Logging (Fehler, Login, Match-Ergebnisse)
+src/telemetry.ts   optionales Logging an Better Stack (Fehler, Login, Match-Ergebnisse)
 src/game/          Spiellogik ohne DOM (Game, TurnManager, Konstanten, RNG)
 src/terrain/       Kartengenerator und zerstörbares Gelände
 src/entities/      Würmer und Projektile

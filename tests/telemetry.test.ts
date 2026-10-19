@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clientInfo, telemetryEnabled, initTelemetry, logLogin, logMatch, reportError, matchSummary } from "../src/telemetry";
+import { buildEvent, clientInfo, telemetryEnabled, initTelemetry, logLogin, logLogout, logMatch, reportError, matchSummary } from "../src/telemetry";
 import type { MatchResult } from "../src/types";
 
 const result = {
@@ -15,7 +15,7 @@ const result = {
 } as unknown as MatchResult;
 
 describe("Telemetrie", () => {
-  it("ist ohne DSN aus und alle Aufrufe sind harmlos", () => {
+  it("ist ohne Host aus und alle Aufrufe sind harmlos", () => {
     expect(telemetryEnabled()).toBe(false);
     let threw = false;
     try {
@@ -23,6 +23,7 @@ describe("Telemetrie", () => {
       reportError(new Error("x"), "test");
       logLogin("did:plc:a", "anna.test");
       logMatch(result);
+      logLogout();
     } catch {
       threw = true;
     }
@@ -41,5 +42,17 @@ describe("Telemetrie", () => {
     const info = clientInfo();
     expect(typeof info).toBe("object");
     expect(typeof info.timeZone).toBe("string");
+  });
+
+  it("baut Logzeilen mit Zeit, Stufe, Nachricht und Zusatzfeldern", () => {
+    const e = buildEvent("info", "Test", { event: "x", n: 1 }, new Date("2026-01-02T03:04:05.000Z"));
+    expect(e).toMatchObject({ dt: "2026-01-02T03:04:05.000Z", level: "info", message: "Test", event: "x", n: 1 });
+  });
+
+  it("hängt nach dem Login den Nutzer an jede Zeile", () => {
+    logLogin("did:plc:a", "anna.test");
+    expect(buildEvent("info", "Danach")).toMatchObject({ user: { did: "did:plc:a", handle: "anna.test" } });
+    logLogout();
+    expect("user" in buildEvent("info", "Nachher")).toBe(false);
   });
 });

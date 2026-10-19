@@ -1,66 +1,66 @@
 /**
- * Optionales Logging über Sentry: unerwartete Fehler, Logins (mit Nutzerdaten) und Match-Ergebnisse.
- * Ohne `CONFIG.sentry.dsn` passiert nichts. Das Sentry-SDK wird erst bei Bedarf geladen, und
- * alle Aufrufe sind fehlertolerant: Logging darf das Spiel nie stören.
+ * Optionales Logging über Better Stack Logs (HTTP-Ingest, kein SDK): unerwartete Fehler, Logins (mit Nutzerdaten)
+ * und Match-Ergebnisse als einzelne Logzeilen. Ohne `CONFIG.logs.host` und `CONFIG.logs.token` passiert nichts.
+ * Alle Aufrufe sind fehlertolerant: Logging darf das Spiel nie stören.
  */
 import { CONFIG } from "./config";
 import type { MatchResult } from "./types";
 
-/** Teilmenge der Sentry-API, die wir brauchen. */
-interface SentryLike {
-  init(options: Record<string, unknown>): void;
-  captureException(error: unknown, hint?: Record<string, unknown>): string;
-  captureMessage(message: string, hint?: Record<string, unknown>): string;
-  setUser(user: { id: string; username?: string; ip_address?: string } | null): void;
-  setContext(name: string, context: Record<string, unknown> | null): void;
-}
+type Level = "info" | "warn" | "error";
 
-let sentry: Promise<SentryLike | null> | null = null;
+const MAX_EVENTS_PER_PAGE = 100;
+const sessionId = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Math.random()).slice(2);
+let sent = 0;
+let user: { did: string; handle: string | null } | null = null;
+let started = false;
 
 export function telemetryEnabled(): boolean {
-  return CONFIG.sentry.dsn !== "";
+  return CONFIG.logs.host !== "" && CONFIG.logs.token !== "";
 }
 
-function load(): Promise<SentryLike | null> {
-  if (!telemetryEnabled()) return Promise.resolve(null);
-  sentry ??= import("@sentry/browser")
-    .then((mod) => {
-      const s = mod as unknown as SentryLike;
-      s.init({
-        dsn: CONFIG.sentry.dsn,
-        environment: location.hostname === "localhost" ? "development" : "production",
-        // IP-Adresse (von Sentry serverseitig ergänzt) und Request-Header gehören zu den Meldungen; keine Performance-Daten.
-        sendDefaultPii: true,
-        tracesSampleRate: 0,
-        // Bekanntes Rauschen von Browser-Erweiterungen/Übersetzern, nicht aus unserem Code.
-        ignoreErrors: [/has no method 'updateFrom'/],
-        denyUrls: [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-(web-)?extension:\/\//i, /^webkit-masked-url:/i],
-      });
-      return s;
-    })
-    .catch(() => null);
-  return sentry;
+/** Baut eine Logzeile (reines JSON-Objekt). */
+export function buildEvent(level: Level, message: string, fields: Record<string, unknown> = {}, now = new Date()): Record<string, unknown> {
+  return { dt: now.toISOString(), level, message, session: sessionId, ...(user ? { user } : {}), ...fields };
 }
 
-function run(fn: (s: SentryLike) => void): void {
-  void load().then((s) => {
-    if (!s) return;
-    try {
-      fn(s);
-    } catch {
-      /* Logging darf nie stören */
-    }
-  });
+function ship(event: Record<string, unknown>): void {
+  if (!telemetryEnabled() || sent >= MAX_EVENTS_PER_PAGE) return;
+  sent++;
+  try {
+    const host = CONFIG.logs.host.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    void fetch(`https://${host}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${CONFIG.logs.token}` },
+      body: JSON.stringify(event),
+      keepalive: true,
+    }).catch(() => undefined);
+  } catch {
+    /* Logging darf nie stören */
+  }
 }
 
-/** Startet Sentry (globale Fehlerhandler) beim App-Start. */
+function log(level: Level, message: string, fields?: Record<string, unknown>): void {
+  ship(buildEvent(level, message, fields));
+}
+
+const errorText = (e: unknown): { error: string; stack?: string } => (e instanceof Error ? { error: e.message, stack: e.stack } : { error: String(e) });
+
+/** Startet das Logging beim App-Start (globale Fehlerhandler). */
 export function initTelemetry(): void {
-  run(() => undefined);
+  if (started || !telemetryEnabled() || typeof window === "undefined") return;
+  started = true;
+  window.addEventListener("error", (ev) => {
+    // Fehler aus Browser-Erweiterungen und fremden Skripten ignorieren.
+    if (ev.filename && !ev.filename.startsWith(location.origin)) return;
+    log("error", "Unbehandelter Fehler", { event: "error", where: "window.onerror", ...errorText(ev.error ?? ev.message), file: ev.filename, line: ev.lineno, col: ev.colno });
+  });
+  window.addEventListener("unhandledrejection", (ev) => log("error", "Unbehandeltes Promise-Rejection", { event: "error", where: "unhandledrejection", ...errorText(ev.reason) }));
+  log("info", "Seite geladen", { event: "pageview", client: clientInfo() });
 }
 
 /** Meldet einen Fehler, den wir selbst abfangen (Login, Sync, …). */
 export function reportError(error: unknown, where: string, extra: Record<string, unknown> = {}): void {
-  run((s) => s.captureException(error, { tags: { where }, extra }));
+  log("error", `Fehler: ${where}`, { event: "error", where, ...errorText(error), ...extra });
 }
 
 /** Browser- und Geräteangaben (alles, was der Browser ohne Nachfrage hergibt). */
@@ -93,21 +93,15 @@ export function clientInfo(): Record<string, unknown> {
   return info;
 }
 
-/**
- * Login (mit Nutzerdaten: DID, Handle, PDS, Token-Metadaten, DID-Dokument, Browser-/Gerätedaten, IP durch Sentry).
- * Setzt zugleich den Nutzer für alle weiteren Meldungen.
- */
+/** Login mit Nutzerdaten (DID, Handle, PDS, Token-Metadaten, DID-Dokument, Browser-/Gerätedaten). Der Nutzer hängt danach an allen weiteren Zeilen. */
 export function logLogin(did: string, handle: string | null, details: Record<string, unknown> = {}): void {
-  run((s) => {
-    s.setUser({ id: did, ip_address: "{{auto}}", ...(handle ? { username: handle } : {}) });
-    s.setContext("login", { did, handle, ...details });
-    s.setContext("client", clientInfo());
-    s.captureMessage("Login", { level: "info", tags: { event: "login" }, extra: { did, handle, ...details, client: clientInfo() } });
-  });
+  user = { did, handle };
+  log("info", `Login: ${handle ?? did}`, { event: "login", ...details, client: clientInfo() });
 }
 
 export function logLogout(): void {
-  run((s) => s.setUser(null));
+  log("info", `Logout: ${user?.handle ?? user?.did ?? ""}`, { event: "logout" });
+  user = null;
 }
 
 /** Zusammenfassung eines Match-Ergebnisses. */
@@ -131,5 +125,7 @@ export function matchSummary(result: MatchResult): Record<string, unknown> {
 }
 
 export function logMatch(result: MatchResult): void {
-  run((s) => s.captureMessage("Match beendet", { level: "info", tags: { event: "match", mode: result.config.mode }, extra: matchSummary(result) }));
+  const s = matchSummary(result);
+  const [a, b] = result.teams;
+  log("info", `Match: ${a?.name} vs ${b?.name} – Sieger: ${s.winner ?? "keiner"}`, { event: "match", ...s });
 }
