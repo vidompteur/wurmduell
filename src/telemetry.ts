@@ -133,7 +133,7 @@ export function initTelemetry(): void {
   // Erst IP/Ort ermitteln (höchstens 3 Sekunden), damit schon die erste Zeile sie enthält.
   void lookupGeo().then((g) => {
     geo = g;
-    log("info", `Seite geladen – ${shortAgent(c.userAgent as string)}, ${c.screen}, ${c.language}, ${c.timeZone}${g ? ` – ${geoText(g)}` : ""}`, { event: "pageview", client: c });
+    log("info", `Seite geladen – ${shortAgent(c.userAgent as string)}${g ? ` – ${geoText(g)}` : ""}`, { event: "pageview", client: c });
   });
 }
 
@@ -176,10 +176,9 @@ export function clientInfo(): Record<string, unknown> {
 /** Login mit Nutzerdaten (DID, Handle, PDS, Token-Metadaten, DID-Dokument, Browser-/Gerätedaten). Der Nutzer hängt danach an allen weiteren Zeilen. */
 export function logLogin(did: string, handle: string | null, details: Record<string, unknown> = {}): void {
   user = { did, handle };
-  const c = clientInfo();
   const pds = (details.token as { pds?: string } | undefined)?.pds;
-  const host = pds ? new URL(pds).host : null;
-  log("info", `Login: ${handle ?? did}${host ? ` – PDS ${host}` : ""} – ${shortAgent(c.userAgent as string)}, ${c.timeZone}${geo ? ` – ${geoText(geo)}` : ""}`, { event: "login", handle, did, ...details, client: c });
+  // Browser, Ort und Gerät stehen schon in der Zeile „Seite geladen“ (gleiche Sitzungs-ID); hier nur das Konto.
+  log("info", `Login: ${handle ?? did}${pds ? ` (PDS ${new URL(pds).host})` : ""}`, { event: "login", handle, did, ...details });
 }
 
 export function logLogout(): void {
