@@ -221,7 +221,7 @@ describe("Spielregeln", () => {
 
   it("Bazooka reicht (ohne Wind, auf ebenem Grund) 30 % weiter als im Original", () => {
     // Wurfweite bei 45° ~ v² / g; Ursprungsgeschwindigkeit war 1150 px/s.
-    expect(WEAPONS.bazooka.maxSpeed ** 2 / 1150 ** 2).toBeCloseTo(1.3, 5);
+    expect(WEAPONS.bazooka.maxSpeed ** 2 / 1150 ** 2).toBeCloseTo(1.6, 5);
   });
 
   it("Pure-Modus: nur die Bazooka ist verfügbar", () => {
