@@ -4,17 +4,36 @@ import {
   COLLECTIONS,
   type MatchResultRecord,
   entryFromSummary,
+  matchRecordKey,
   mergeLadder,
   summaryRecord,
 } from "./records";
 
 /** Minimale PDS-Schnittstelle, damit die Sync-Logik ohne Netzwerk testbar bleibt. */
 export interface PdsClient {
-  createRecord(collection: string, record: object): Promise<void>;
-  /** Liefert `null`, wenn der Record nicht existiert. */
-  getRecord(collection: string, rkey: string): Promise<unknown | null>;
-  putRecord(collection: string, rkey: string, record: object): Promise<void>;
+  /** Mit festem `rkey` wiederholbar: gibt es den Record schon, ist das kein Fehler. */
+  createRecord(collection: string, record: object, rkey?: string): Promise<void>;
+  /** Liefert `null`, wenn der Record nicht existiert. `cid` dient der Konflikterkennung beim Schreiben. */
+  getRecord(collection: string, rkey: string): Promise<{ value: unknown; cid?: string } | null>;
+  /** Mit `swapCid` wird nur geschrieben, wenn der Record noch dieser Stand ist, sonst `SwapConflictError`. */
+  putRecord(collection: string, rkey: string, record: object, swapCid?: string): Promise<void>;
 }
+
+/** Der Record wurde zwischen Lesen und Schreiben von jemand anderem geändert. */
+export class SwapConflictError extends Error {
+  constructor() {
+    super("Record wurde zwischenzeitlich geändert");
+    this.name = "SwapConflictError";
+  }
+}
+
+/** Erkennt die PDS-Antwort „Record existiert schon“ (die Meldung ist je nach PDS unterschiedlich formuliert). */
+export function isAlreadyExists(error: unknown): boolean {
+  const e = error as { status?: unknown; error?: unknown; message?: unknown } | null;
+  return e?.status === 409 || /already exist|duplicate|RecordAlreadyExists/i.test(`${String(e?.error ?? "")} ${String(e?.message ?? "")}`);
+}
+
+const MAX_SWAP_RETRIES = 3;
 
 export const SYNC_QUEUE_KEY = "wurmduell.syncQueue.v1";
 
@@ -100,18 +119,32 @@ export async function syncAccount(opts: SyncOptions): Promise<LadderEntry | null
   let written = 0;
   try {
     for (const record of waiting) {
-      await client.createRecord(COLLECTIONS.matchResult, record);
+      try {
+        await client.createRecord(COLLECTIONS.matchResult, record, matchRecordKey(record));
+      } catch (error) {
+        // Bereits geschrieben (z. B. Antwort ging verloren): gilt als erledigt.
+        if (!isAlreadyExists(error)) throw error;
+      }
       written += 1;
     }
   } finally {
     if (written > 0) queue.drop(did, written);
   }
 
-  const local = store.entryFor(did);
-  const remote = entryFromSummary(await client.getRecord(COLLECTIONS.ladderSummary, "self"), did, name);
-  const merged = local && remote ? mergeLadder(local, remote) : (local ?? remote);
-  if (!merged) return null;
-  store.upsertEntry(merged);
-  await client.putRecord(COLLECTIONS.ladderSummary, "self", summaryRecord(merged));
-  return merged;
+  for (let attempt = 0; ; attempt++) {
+    const remoteRecord = await client.getRecord(COLLECTIONS.ladderSummary, "self");
+    const local = store.entryFor(did);
+    const remote = entryFromSummary(remoteRecord?.value ?? null, did, name);
+    const merged = local && remote ? mergeLadder(local, remote) : (local ?? remote);
+    if (!merged) return null;
+    store.upsertEntry(merged);
+    try {
+      await client.putRecord(COLLECTIONS.ladderSummary, "self", summaryRecord(merged), remoteRecord?.cid);
+      return merged;
+    } catch (error) {
+      // Zwei Geräte haben gleichzeitig geschrieben: neu lesen, neu mergen, noch einmal schreiben.
+      if (error instanceof SwapConflictError && attempt < MAX_SWAP_RETRIES) continue;
+      throw error;
+    }
+  }
 }

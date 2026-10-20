@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { COLLECTIONS, entryFromSummary, matchRecordsForAccount, mergeLadder, summaryRecord } from "../src/atproto/records";
-import { SyncQueue, syncAccount, type PdsClient } from "../src/atproto/sync";
+import { COLLECTIONS, entryFromSummary, matchRecordKey, matchRecordsForAccount, mergeLadder, summaryRecord } from "../src/atproto/records";
+import { SwapConflictError, SyncQueue, syncAccount, type PdsClient } from "../src/atproto/sync";
 import { LadderStore } from "../src/ladder/LadderStore";
 import type { LadderEntry, MatchResult } from "../src/types";
 import { MemoryStorage } from "./helpers";
@@ -24,16 +24,28 @@ function result(winner: number | null): MatchResult {
 
 class FakePds implements PdsClient {
   records = new Map<string, unknown>();
-  created: { collection: string; record: unknown }[] = [];
+  created: { collection: string; record: unknown; rkey?: string }[] = [];
   failCreates = false;
-  async createRecord(collection: string, record: object): Promise<void> {
+  /** Anzahl der nächsten putRecord-Aufrufe, die als Konflikt abgelehnt werden (anderes Gerät hat geschrieben). */
+  conflicts = 0;
+  puts: { swapCid?: string }[] = [];
+  private version = 1;
+  async createRecord(collection: string, record: object, rkey?: string): Promise<void> {
     if (this.failCreates) throw new Error("offline");
-    this.created.push({ collection, record });
+    if (rkey && this.created.some((c) => c.collection === collection && c.rkey === rkey)) throw Object.assign(new Error("Record already exists"), { status: 409 });
+    this.created.push({ collection, record, rkey });
   }
-  async getRecord(collection: string, rkey: string): Promise<unknown | null> {
-    return this.records.get(`${collection}/${rkey}`) ?? null;
+  async getRecord(collection: string, rkey: string): Promise<{ value: unknown; cid?: string } | null> {
+    const value = this.records.get(`${collection}/${rkey}`);
+    return value === undefined ? null : { value, cid: `cid${this.version}` };
   }
-  async putRecord(collection: string, rkey: string, record: object): Promise<void> {
+  async putRecord(collection: string, rkey: string, record: object, swapCid?: string): Promise<void> {
+    this.puts.push({ swapCid });
+    if (this.conflicts > 0) {
+      this.conflicts -= 1;
+      this.version += 1;
+      throw new SwapConflictError();
+    }
     this.records.set(`${collection}/${rkey}`, record);
   }
 }
@@ -109,5 +121,48 @@ describe("PDS-Sync", () => {
     expect(p.id).toBe(DID);
     expect(p.name).toBe("anna.test (Konto)");
     expect(store.bindAccount(DID, "neu.test").name).toBe("neu.test");
+  });
+
+  it("schreibt matchResult mit festem Schlüssel und behandelt „existiert schon“ als erledigt", async () => {
+    const store = new LadderStore(new MemoryStorage());
+    const queue = new SyncQueue(new MemoryStorage());
+    const pds = new FakePds();
+    const rec = matchRecordsForAccount(result(0), DID, "2026-01-01T00:00:00.000Z")[0]!;
+    expect(matchRecordKey(rec)).toBe(matchRecordKey({ ...rec }));
+    queue.enqueue(DID, [rec]);
+    await syncAccount({ client: pds, did: DID, name: "anna.test", store, queue });
+    expect(pds.created[0]?.rkey).toBe(matchRecordKey(rec));
+    // Dieselbe Partie nochmal (Antwort war verloren gegangen): kein Fehler, kein zweiter Record, Queue leer.
+    queue.enqueue(DID, [rec]);
+    await syncAccount({ client: pds, did: DID, name: "anna.test", store, queue });
+    expect(pds.created).toHaveLength(1);
+    expect(queue.pending(DID)).toHaveLength(0);
+  });
+
+  it("liest bei Schreibkonflikt neu, merged erneut und schreibt mit dem neuen Stand", async () => {
+    const store = new LadderStore(new MemoryStorage());
+    const queue = new SyncQueue(new MemoryStorage());
+    const pds = new FakePds();
+    pds.records.set(`${COLLECTIONS.ladderSummary}/self`, summaryRecord(entry({ matches: 3 })));
+    pds.conflicts = 2;
+    await syncAccount({ client: pds, did: DID, name: "anna.test", store, queue });
+    expect(pds.puts).toHaveLength(3);
+    expect(pds.puts.map((p) => p.swapCid)).toEqual(["cid1", "cid2", "cid3"]);
+  });
+
+  it("gibt nach zu vielen Konflikten auf (Fehler statt Endlosschleife)", async () => {
+    const store = new LadderStore(new MemoryStorage());
+    const queue = new SyncQueue(new MemoryStorage());
+    const pds = new FakePds();
+    pds.records.set(`${COLLECTIONS.ladderSummary}/self`, summaryRecord(entry()));
+    pds.conflicts = 99;
+    let failed = false;
+    try {
+      await syncAccount({ client: pds, did: DID, name: "anna.test", store, queue });
+    } catch (e) {
+      failed = e instanceof SwapConflictError;
+    }
+    expect(failed).toBe(true);
+    expect(pds.puts).toHaveLength(4);
   });
 });

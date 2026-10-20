@@ -37,6 +37,27 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
       return;
     }
 
+    if (v.retrying) {
+      el.append(h("p", { class: "muted small", text: t("account.retrying") }));
+      return;
+    }
+
+    if (v.issue === "offline") {
+      el.append(
+        h("p", { class: "error", text: v.error ?? t("account.error.offline") }),
+        h("div", { class: "row" }, h("button", { class: "btn", type: "button", text: t("account.retry"), onclick: () => void account.restore() })),
+      );
+      return;
+    }
+
+    if (v.issue === "expired" && v.lastHandle) {
+      el.append(
+        h("p", { class: "error", text: v.error ?? t("account.error.expired") }),
+        h("div", { class: "row" }, h("button", { class: "btn btn-primary", type: "button", text: t("account.reLogin"), onclick: () => void account.signIn(v.lastHandle!) })),
+      );
+      return;
+    }
+
     if (!v.available) {
       el.append(h("p", { class: "muted small", text: t("account.unavailable") }));
       return;
@@ -48,6 +69,7 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
       id: "login-handle",
       placeholder: t("account.handlePlaceholder"),
       autocomplete: "username",
+      value: v.lastHandle ?? "",
     });
     input.setAttribute("autocapitalize", "none");
     input.spellcheck = false;
@@ -58,7 +80,7 @@ export function createAccountBox(account: Account): { el: HTMLElement; dispose()
     el.append(
       h(
         "details",
-        { class: "login" },
+        { class: "login", open: Boolean(v.error) } as never,
         h("summary", { text: t("account.signInSummary") }),
         h(
           "form",

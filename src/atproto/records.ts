@@ -63,6 +63,24 @@ export function matchRecordsForAccount(result: MatchResult, did: string, created
   return out;
 }
 
+function fnv1a(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
+}
+
+/**
+ * Fester Schlüssel für einen `matchResult`-Record aus seinen Inhalten. Wird derselbe Record wegen eines
+ * verlorenen Antwortpakets erneut geschrieben, trifft er denselben Schlüssel und legt kein Duplikat an.
+ */
+export function matchRecordKey(r: MatchResultRecord): string {
+  const time = r.createdAt.replace(/\D/g, "").slice(0, 17);
+  return `${time}-${fnv1a(`${r.mapSeed}|${r.mode}|${r.opponent.name}|${r.outcome}|${r.durationSeconds}|${r.stats.damageDealt}`)}`;
+}
+
 export function summaryRecord(entry: LadderEntry): SummaryRecord {
   const { playerId: _id, name: _name, ...rest } = entry;
   return { $type: COLLECTIONS.ladderSummary, ...rest };

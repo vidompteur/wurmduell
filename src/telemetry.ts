@@ -63,8 +63,13 @@ export function geoText(g: Geo | null): string {
   return [g.ip, g.city, g.countryCode ?? g.country].filter(Boolean).join(", ");
 }
 
+/** Lokale Entwicklung (localhost) sendet nichts, damit Testläufe die Logs nicht füllen. */
+function isLocalDev(): boolean {
+  return typeof location !== "undefined" && (location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.hostname === "[::1]");
+}
+
 export function telemetryEnabled(): boolean {
-  return CONFIG.logs.host !== "" && CONFIG.logs.token !== "";
+  return CONFIG.logs.host !== "" && CONFIG.logs.token !== "" && !isLocalDev();
 }
 
 /** Baut eine Logzeile (reines JSON-Objekt). */
@@ -179,6 +184,16 @@ export function logLogin(did: string, handle: string | null, details: Record<str
   const pds = (details.token as { pds?: string } | undefined)?.pds;
   // Browser, Ort und Gerät stehen schon in der Zeile „Seite geladen“ (gleiche Sitzungs-ID); hier nur das Konto.
   log("info", `Login: ${handle ?? did}${pds ? ` (PDS ${new URL(pds).host})` : ""}`, { event: "login", handle, did, ...details });
+}
+
+/** Merkt den Nutzer für alle weiteren Zeilen, ohne selbst eine Zeile zu schreiben (z. B. bei wiederhergestellter Sitzung). */
+export function identify(did: string, handle: string | null): void {
+  user = { did, handle };
+}
+
+/** Schritte des Login-Ablaufs (Weiterleitung, Rückkehr, automatische Wiederholung) zur Fehlersuche. */
+export function logAuth(stage: string, fields: Record<string, unknown> = {}, level: Level = "info"): void {
+  log(level, `Auth: ${stage}`, { event: "auth", stage, ...fields });
 }
 
 export function logLogout(): void {
