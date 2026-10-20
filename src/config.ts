@@ -63,6 +63,12 @@ export const CONFIG = {
      */
     host: "s2801996.us-west-2a.betterstackdata.com" as string,
     token: "8Ytn3XWPzsbJ4Ts9TqGf41BU" as string,
+    /**
+     * Dienst, der IP-Adresse und ungefähren Ort des Clients liefert (JSON, z. B. ipwho.is oder ipapi.co).
+     * Der Browser kennt seine öffentliche IP nicht selbst. Leer = keine IP-/Ortsangabe in den Logs.
+     * Achtung: Der Dienst sieht dabei die IP der Spieler:innen.
+     */
+    geoLookupUrl: "https://ipwho.is/" as string,
   },
   setup: {
     mode: "vsAi" as MatchMode,

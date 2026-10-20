@@ -1,6 +1,6 @@
 import "./styles.css";
 import { Account } from "./atproto/Account";
-import { initTelemetry, logMatch } from "./telemetry";
+import { initTelemetry, logMatch, logMatchStart } from "./telemetry";
 import { Sound } from "./audio/Sound";
 import { LadderStore } from "./ladder/LadderStore";
 import { renderLadder } from "./ladder/LadderUi";
@@ -54,6 +54,7 @@ let activeMatch: MatchHandle | null = null;
 
 function toMatch(config: MatchConfig): MatchHandle {
   sound.unlock();
+  logMatchStart(config);
   let handle!: MatchHandle;
   show(() => {
     handle = showMatch(app!, {

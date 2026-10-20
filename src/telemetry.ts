@@ -4,7 +4,7 @@
  * Alle Aufrufe sind fehlertolerant: Logging darf das Spiel nie stören.
  */
 import { CONFIG } from "./config";
-import type { MatchResult } from "./types";
+import type { MatchConfig, MatchResult } from "./types";
 
 type Level = "info" | "warn" | "error";
 
@@ -13,6 +13,55 @@ const sessionId = typeof crypto !== "undefined" && "randomUUID" in crypto ? cryp
 let sent = 0;
 let user: { did: string; handle: string | null } | null = null;
 let started = false;
+let geo: Geo | null = null;
+
+export interface Geo {
+  ip?: string;
+  city?: string;
+  region?: string;
+  country?: string;
+  countryCode?: string;
+  org?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+/** Vereinheitlicht die Antworten gängiger IP-Dienste (ipwho.is, ipapi.co, ipinfo-ähnlich). */
+export function parseGeo(body: unknown): Geo | null {
+  if (typeof body !== "object" || body === null) return null;
+  const b = body as Record<string, unknown>;
+  if (b.success === false || b.error) return null;
+  const str = (v: unknown): string | undefined => (typeof v === "string" && v !== "" ? v : undefined);
+  const num = (v: unknown): number | undefined => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+  const conn = typeof b.connection === "object" && b.connection !== null ? (b.connection as Record<string, unknown>) : {};
+  const out: Geo = {
+    ip: str(b.ip),
+    city: str(b.city),
+    region: str(b.region) ?? str(b.region_name),
+    country: str(b.country) ?? str(b.country_name),
+    countryCode: str(b.country_code),
+    org: str(conn.isp) ?? str(conn.org) ?? str(b.org),
+    latitude: num(b.latitude),
+    longitude: num(b.longitude),
+  };
+  return out.ip || out.city || out.country ? out : null;
+}
+
+async function lookupGeo(): Promise<Geo | null> {
+  if (!CONFIG.logs.geoLookupUrl) return null;
+  try {
+    const res = await fetch(CONFIG.logs.geoLookupUrl, { signal: AbortSignal.timeout(3000), headers: { accept: "application/json" } });
+    return res.ok ? parseGeo(await res.json()) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** „1.2.3.4, Berlin, DE“ für die Nachrichtenzeile. */
+export function geoText(g: Geo | null): string {
+  if (!g) return "";
+  return [g.ip, g.city, g.countryCode ?? g.country].filter(Boolean).join(", ");
+}
 
 export function telemetryEnabled(): boolean {
   return CONFIG.logs.host !== "" && CONFIG.logs.token !== "";
@@ -20,11 +69,12 @@ export function telemetryEnabled(): boolean {
 
 /** Baut eine Logzeile (reines JSON-Objekt). */
 export function buildEvent(level: Level, message: string, fields: Record<string, unknown> = {}, now = new Date()): Record<string, unknown> {
-  return { dt: now.toISOString(), level, message, session: sessionId, ...(user ? { user } : {}), ...fields };
+  return { dt: now.toISOString(), level, message, session: sessionId, ...(user ? { user } : {}), ...(geo ? { geo } : {}), ...fields };
 }
 
 function ship(event: Record<string, unknown>): void {
-  if (!telemetryEnabled() || sent >= MAX_EVENTS_PER_PAGE) return;
+  // Nur im Browser senden (Tests und Skripte unter Node loggen nichts).
+  if (typeof window === "undefined" || !telemetryEnabled() || sent >= MAX_EVENTS_PER_PAGE) return;
   sent++;
   try {
     const host = CONFIG.logs.host.replace(/^https?:\/\//, "").replace(/\/+$/, "");
@@ -80,7 +130,11 @@ export function initTelemetry(): void {
     log("error", `Fehler: unhandledrejection – ${e.error}`, { event: "error", where: "unhandledrejection", ...e });
   });
   const c = clientInfo();
-  log("info", `Seite geladen – ${shortAgent(c.userAgent as string)}, ${c.screen}, ${c.language}, ${c.timeZone}`, { event: "pageview", client: c });
+  // Erst IP/Ort ermitteln (höchstens 3 Sekunden), damit schon die erste Zeile sie enthält.
+  void lookupGeo().then((g) => {
+    geo = g;
+    log("info", `Seite geladen – ${shortAgent(c.userAgent as string)}, ${c.screen}, ${c.language}, ${c.timeZone}${g ? ` – ${geoText(g)}` : ""}`, { event: "pageview", client: c });
+  });
 }
 
 /** Meldet einen Fehler, den wir selbst abfangen (Login, Sync, …). */
@@ -125,7 +179,7 @@ export function logLogin(did: string, handle: string | null, details: Record<str
   const c = clientInfo();
   const pds = (details.token as { pds?: string } | undefined)?.pds;
   const host = pds ? new URL(pds).host : null;
-  log("info", `Login: ${handle ?? did}${host ? ` – PDS ${host}` : ""} – ${shortAgent(c.userAgent as string)}, ${c.timeZone}`, { event: "login", handle, did, ...details, client: c });
+  log("info", `Login: ${handle ?? did}${host ? ` – PDS ${host}` : ""} – ${shortAgent(c.userAgent as string)}, ${c.timeZone}${geo ? ` – ${geoText(geo)}` : ""}`, { event: "login", handle, did, ...details, client: c });
 }
 
 export function logLogout(): void {
@@ -151,6 +205,21 @@ export function matchSummary(result: MatchResult): Record<string, unknown> {
       ...t.stats,
     })),
   };
+}
+
+/** Start einer Partie (auch Revanche). */
+export function logMatchStart(config: MatchConfig): void {
+  const [a, b] = config.teams;
+  const ctrl = (t: typeof a): string => (t.controller.kind === "ai" ? `KI ${t.controller.level}` : "Mensch");
+  const extras = [config.mode === "vsAi" ? "gegen KI" : "Hotseat", `${config.wormsPerTeam} Würmer`, config.pure ? "Original-Modus" : "", `Teleports ${config.teleports}`].filter(Boolean).join(", ");
+  log("info", `Spielstart: ${a.name} vs ${b.name} (${extras})`, {
+    event: "matchStart",
+    mode: config.mode,
+    wormsPerTeam: config.wormsPerTeam,
+    pure: config.pure,
+    teleports: config.teleports,
+    teams: [a, b].map((t) => ({ name: t.name, controller: ctrl(t), ...(t.controller.kind === "human" ? { playerId: t.controller.playerId } : {}) })),
+  });
 }
 
 export function logMatch(result: MatchResult): void {

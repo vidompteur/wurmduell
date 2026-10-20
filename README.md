@@ -66,8 +66,9 @@ Das Spiel kann Logzeilen an [Better Stack Logs](https://betterstack.com/docs/log
 
 Jede Zeile ist ein JSON-Objekt mit `dt`, `level`, `message`, Sitzungs-ID und, nach dem Login, dem Nutzer (`user.did`, `user.handle`). Das Feld `event` unterscheidet:
 
-- `pageview`: Seite geladen, mit Browser-/Gerätedaten (User-Agent, Sprache, Zeitzone, Bildschirm, Touch, Verbindung, URL, Referrer).
+- `pageview`: Seite geladen, mit IP-Adresse und ungefährem Ort (Feld `geo`, ermittelt über `logs.geoLookupUrl`, leer = aus; der Dienst sieht dabei die IP der Spieler:innen) und Browser-/Gerätedaten (User-Agent, Sprache, Zeitzone, Bildschirm, Touch, Verbindung, URL, Referrer).
 - `login` / `logout`: DID, Handle, DID-Dokument, PDS und Token-Metadaten (Aussteller, Rechte, Ablauf – nie das Token selbst).
+- `matchStart`: Spielstart (auch Revanche) mit Teams, Modus, Teamgröße, Original-Modus und Teleports.
 - `match`: Modus, Sieger, Dauer, Karten-Seed und Statistik beider Teams (Namen, Spieler-ID/DID bzw. KI-Stufe).
 - `error`: unbehandelte Fehler sowie abgefangene Login-, Session- und Sync-Fehler (`where`, z. B. `atproto.signIn`).
 
