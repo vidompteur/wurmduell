@@ -29,7 +29,50 @@ export function loginAvailable(): boolean {
 }
 
 export function clientId(): string {
-  return CONFIG.atproto.clientId || new URL("client-metadata.json", document.baseURI).href;
+  return CONFIG.atproto.clientId || new URL("client-metadata.json", CONFIG.atproto.appUrl || document.baseURI).href;
+}
+
+/** Ist die Seite unter einer anderen Herkunft geöffnet als die veröffentlichte Adresse? (Dann ginge die Rückkehr vom Login verloren.) */
+export function canonicalAppUrl(): string | null {
+  const app = CONFIG.atproto.appUrl;
+  if (!app) return null;
+  try {
+    return new URL(app).origin === location.origin ? null : app;
+  } catch {
+    return null;
+  }
+}
+
+/** Liest und entfernt `?login=<handle>`: Anforderung, den Login nach dem Wechsel auf die veröffentlichte Adresse zu starten. */
+export function takeLoginRequest(): string | null {
+  const url = new URL(location.href);
+  const handle = url.searchParams.get("login");
+  if (handle === null) return null;
+  url.searchParams.delete("login");
+  history.replaceState(history.state, "", url.toString());
+  return handle.trim() || null;
+}
+
+/** Umgebungsangaben für die Fehlersuche im Log (keine Geheimnisse). */
+async function authContext(): Promise<Record<string, unknown>> {
+  const pending = memory.pending();
+  let persisted: boolean | undefined;
+  try {
+    persisted = await navigator.storage?.persisted?.();
+  } catch {
+    /* ignorieren */
+  }
+  return {
+    origin: location.origin,
+    path: location.pathname,
+    paramKeys: [...new URLSearchParams(location.hash.replace(/^#/, "")).keys(), ...new URLSearchParams(location.search).keys()],
+    referrer: document.referrer ? new URL(document.referrer).origin : undefined,
+    clientId: clientId(),
+    pending: pending ? { handle: pending.handle, autoRetries: pending.autoRetries, elapsedMs: Date.now() - pending.startedAt } : null,
+    indexedDB: typeof indexedDB !== "undefined",
+    storagePersisted: persisted,
+    visibility: document.visibilityState,
+  };
 }
 
 /** Lädt Client-Bibliothek erst bei Bedarf, damit sie den Spielstart nicht verlangsamt. */
@@ -76,7 +119,7 @@ const detail = (error: unknown): Record<string, unknown> => ({
 
 async function restoreOnce(): Promise<RestoreResult> {
   const callback = hasCallbackParams(location.href);
-  logAuth("restore", { callback });
+  logAuth("restore", { callback, ...(await authContext()) });
   const client = await withTimeout(getOAuthClient(), LIMITS.load, "OAuth-Client laden");
   try {
     const result = await withTimeout(client.init(), LIMITS.init, "Sitzung prüfen");
@@ -88,7 +131,7 @@ async function restoreOnce(): Promise<RestoreResult> {
     return { session: null, fresh: false };
   } catch (error) {
     const kind = classifyAuthError(error);
-    logAuth("restore.error", { callback, ...detail(error) }, "warn");
+    logAuth("restore.error", { callback, ...detail(error), ...(await authContext()) }, "warn");
     if (!callback) {
       // Keine Rückgabe im Spiel: Netzwerk- und Ablauffehler getrennt melden (siehe Account).
       throw error instanceof AuthError ? error : new AuthError(error instanceof Error ? error.message : String(error), kind, error);
@@ -96,15 +139,20 @@ async function restoreOnce(): Promise<RestoreResult> {
     // Die Rückkehr vom Login ist fehlgeschlagen. Meist ist die Anmeldung beim PDS trotzdem gültig:
     // 1) Rückgabeparameter entfernen und eine schon gespeicherte Sitzung wiederherstellen,
     history.replaceState(history.state, "", cleanCallbackUrl(location.href));
-    try {
-      const again = await withTimeout(client.init(), LIMITS.init, "Sitzung prüfen (2)");
-      if (again?.session) {
-        logAuth("restore.recovered", {});
-        memory.clearPending();
-        return { session: again.session, fresh: true };
+    // Läuft dieselbe Rückgabe gleichzeitig in einem zweiten Fenster/Tab, ist deren Ergebnis gleich da:
+    // kurz mehrmals nachsehen, bevor der Login neu gestartet wird.
+    for (let i = 0; i < 4; i++) {
+      try {
+        const again = await withTimeout(client.init(), LIMITS.init, "Sitzung prüfen (2)");
+        if (again?.session) {
+          logAuth("restore.recovered", { poll: i });
+          memory.clearPending();
+          return { session: again.session, fresh: true };
+        }
+      } catch (second) {
+        logAuth("restore.error2", { poll: i, ...detail(second) }, "warn");
       }
-    } catch (second) {
-      logAuth("restore.error2", detail(second), "warn");
+      await new Promise((resolve) => setTimeout(resolve, 700));
     }
     // 2) sonst den Login einmal automatisch neu starten (der zweite Versuch gelingt erfahrungsgemäß).
     const pending = memory.takeAutoRetry();
@@ -132,7 +180,7 @@ async function startSignIn(handle: string): Promise<void> {
   for (let attempt = 1; ; attempt++) {
     try {
       const client = await withTimeout(getOAuthClient(), LIMITS.load, "OAuth-Client laden");
-      logAuth("signIn", { handle, attempt });
+      logAuth("signIn", { handle, attempt, ...(await authContext()) });
       await client.signIn(handle, { state: crypto.randomUUID() });
       return;
     } catch (error) {
@@ -147,6 +195,13 @@ async function startSignIn(handle: string): Promise<void> {
 
 /** Leitet zum OAuth-Server des PDS weiter; kehrt normalerweise nicht zurück. */
 export async function signIn(handle: string): Promise<void> {
+  const canonical = canonicalAppUrl();
+  if (canonical) {
+    // Anderer Ursprung als die registrierte Adresse: der Login muss dort starten, sonst geht der Anmeldevorgang verloren.
+    logAuth("signIn.moveToCanonical", { from: location.origin, to: canonical });
+    location.assign(`${canonical}?login=${encodeURIComponent(handle)}`);
+    return;
+  }
   memory.begin(handle);
   await startSignIn(handle);
 }

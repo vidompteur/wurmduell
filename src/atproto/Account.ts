@@ -1,6 +1,6 @@
 import type { LadderStore } from "../ladder/LadderStore";
 import type { MatchResult } from "../types";
-import { type AtSession, createPdsClient, describeAccount, lastHandle, loginAvailable, restoreSession, signIn } from "./auth";
+import { type AtSession, createPdsClient, describeAccount, lastHandle, loginAvailable, restoreSession, signIn, takeLoginRequest } from "./auth";
 import { AuthError, classifyAuthError, withTimeout } from "./authFlow";
 import { matchRecordsForAccount } from "./records";
 import { SyncQueue, syncAccount } from "./sync";
@@ -95,6 +95,8 @@ export class Account {
   private async doRestore(): Promise<void> {
     if (!loginAvailable()) return;
     window.clearTimeout(this.offlineTimer);
+    // Wurde die Seite für einen Login von einer anderen Herkunft hierher geleitet, den Login jetzt starten.
+    const requested = takeLoginRequest();
     try {
       const result = await restoreSession();
       if (result.retrying) {
@@ -107,6 +109,7 @@ export class Account {
       this.offlineAttempt = 0;
       if (!result.session) {
         this.emit();
+        if (requested) await this.signIn(requested);
         return;
       }
       await this.adopt(result.session, result.fresh);

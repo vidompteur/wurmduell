@@ -50,7 +50,14 @@ export const CONFIG = {
     /** Löst Handles beim Login auf. */
     handleResolver: "https://bsky.social",
     /**
-     * Leer = wird aus der aktuellen Seiten-URL abgeleitet (`client-metadata.json` neben der index.html).
+     * Veröffentlichte Adresse der Seite (inkl. abschließendem `/`), identisch mit `redirect_uris` in
+     * `public/client-metadata.json`. Die Anmeldung gehört zu dieser Adresse (Browser-Speicher gilt pro Herkunft):
+     * Wird das Spiel unter einer anderen Herkunft geöffnet, geht der Login zuerst auf diese Adresse.
+     * Leer = Adresse wird aus der aktuellen Seite abgeleitet.
+     */
+    appUrl: "https://sites.wisp.place/steini7.eurosky.social/wurmduell/" as string,
+    /**
+     * Leer = `client-metadata.json` unter `appUrl` (bzw. neben der aktuellen Seite).
      * Muss exakt zur `client_id` in `public/client-metadata.json` passen.
      */
     clientId: "",
