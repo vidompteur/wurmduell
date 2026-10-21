@@ -229,7 +229,7 @@ Und in `public/client-metadata.json`:
 }
 ```
 
-Die `client_id` muss exakt der URL entsprechen, unter der `client-metadata.json` später erreichbar ist.
+Die `client_id` muss exakt der URL entsprechen, unter der `client-metadata.json` später erreichbar ist. Dieses Projekt nutzt die Adresse `https://wurmduell.wisp.place/` (in `public/client-metadata.json` und `atproto.appUrl` in `src/config.ts`). Wichtig: Spiele immer über **diese** Adresse; der Browser speichert den Login pro Domain, und eine abweichende Domain (z. B. `sites.wisp.place/...`) führt zu „Unknown authorization session“. Das Spiel wechselt beim Anmelden von selbst auf `appUrl`.
 
 ## Bei wisp.place anmelden
 

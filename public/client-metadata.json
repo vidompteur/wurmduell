@@ -1,9 +1,9 @@
 {
-  "client_id": "https://sites.wisp.place/steini7.eurosky.social/wurmduell/client-metadata.json",
+  "client_id": "https://wurmduell.wisp.place/client-metadata.json",
   "client_name": "Wurmduell",
-  "client_uri": "https://sites.wisp.place/steini7.eurosky.social/wurmduell/",
+  "client_uri": "https://wurmduell.wisp.place/",
   "redirect_uris": [
-    "https://sites.wisp.place/steini7.eurosky.social/wurmduell/"
+    "https://wurmduell.wisp.place/"
   ],
   "scope": "atproto repo:de.wurmduell.ladderSummary?action=create&action=update repo:de.wurmduell.matchResult?action=create",
   "grant_types": [

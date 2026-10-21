@@ -55,7 +55,7 @@ export const CONFIG = {
      * Wird das Spiel unter einer anderen Herkunft geöffnet, geht der Login zuerst auf diese Adresse.
      * Leer = Adresse wird aus der aktuellen Seite abgeleitet.
      */
-    appUrl: "https://sites.wisp.place/steini7.eurosky.social/wurmduell/" as string,
+    appUrl: "https://wurmduell.wisp.place/" as string,
     /**
      * Leer = `client-metadata.json` unter `appUrl` (bzw. neben der aktuellen Seite).
      * Muss exakt zur `client_id` in `public/client-metadata.json` passen.
