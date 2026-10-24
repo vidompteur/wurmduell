@@ -81,6 +81,8 @@ Der Token steht öffentlich im Code und erlaubt nur das Einliefern; jemand könn
 
 Unter **Rangliste → Global** steht die Rangliste aller teilnehmenden Spieler. Sie ist eine statische Datei (`public/ladder.json`), die ein Skript aus den öffentlichen `de.wurmduell.ladderSummary`-Records der Spieler erzeugt (Spieler müssen dafür mindestens einmal angemeldet gespielt haben).
 
+**Profil-Links:** In der globalen Rangliste ist der Name ein Link zum Profil (`atproto.profileUrl` in `src/config.ts`, Standard `https://bsky.app/profile/{id}`; leer = keine Links).
+
 **Mitmachen:** Einfach im Spiel anmelden und eine Partie spielen. Das Skript fragt den Bluesky-Relay (`com.atproto.sync.listReposByCollection`) nach allen Konten mit einer `de.wurmduell.ladderSummary` und nimmt sie bei der nächsten Aktualisierung automatisch auf. Zusätzlich kannst du in `public/players.json` Konten von Hand eintragen (`players`) oder sperren (`blocked`, Handle oder DID):
 
 ```json

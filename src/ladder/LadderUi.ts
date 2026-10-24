@@ -2,6 +2,7 @@ import { clear, confirmDialog, h, promptDialog } from "../ui/dom";
 import type { LadderStore } from "./LadderStore";
 import { accuracy, winRate } from "./LadderStore";
 import { loadGlobalLadder } from "./globalLadderClient";
+import { profileUrl } from "./profileLink";
 import type { LadderEntry } from "../types";
 import { t } from "../i18n";
 
@@ -19,7 +20,18 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
   type Tab = "local" | "global";
   let tab: Tab = "local";
 
-  const table = (entries: readonly LadderEntry[], canRename: boolean): HTMLElement => {
+  /** Name als Link zum Profil (Handle oder DID); ohne gültigen Link nur Text. */
+  const profileLink = (e: LadderEntry & { handle?: string | null }): HTMLElement => {
+    const url = profileUrl(e.handle ?? e.playerId);
+    if (!url) return h("span", { text: e.name });
+    const a = h("a", { text: e.name, title: t("ladder.profileLink", { name: e.name }) });
+    a.setAttribute("href", url);
+    a.setAttribute("target", "_blank");
+    a.setAttribute("rel", "noopener noreferrer");
+    return a;
+  };
+
+  const table = (entries: readonly (LadderEntry & { handle?: string | null })[], canRename: boolean, link = false): HTMLElement => {
     const head = ["rank", "name", "wins", "losses", "matches", "winrate", "accuracy", "damage", "streak"].map((c) => t(`ladder.col.${c}`));
     const rows = entries.map((e, i) =>
       h(
@@ -29,7 +41,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
         h(
           "td",
           { class: "name" },
-          h("span", { text: e.name }),
+          link ? profileLink(e) : h("span", { text: e.name }),
           canRename
             ? h("button", {
                 class: "icon-btn",
@@ -78,7 +90,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
           body.append(h("p", { class: "muted", text: t("ladder.global.empty") }));
           return;
         }
-        body.append(table(file.entries, false));
+        body.append(table(file.entries, false, true));
         const when = file.updatedAt ? new Date(file.updatedAt).toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" }) : t("ladder.global.unknownDate");
         body.append(h("p", { class: "muted small", text: t("ladder.global.updated", { when }) }));
       },

@@ -61,6 +61,11 @@ export const CONFIG = {
      * Muss exakt zur `client_id` in `public/client-metadata.json` passen.
      */
     clientId: "",
+    /**
+     * Profil-Link in der globalen Rangliste; `{id}` wird durch Handle (bzw. DID) ersetzt.
+     * Leer = keine Links. Eurosky-/Bluesky-Konten sind über bsky.app erreichbar.
+     */
+    profileUrl: "https://bsky.app/profile/{id}" as string,
   },
   logs: {
     /**

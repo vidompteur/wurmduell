@@ -835,3 +835,14 @@ input[type="checkbox"] {
   opacity: 1;
   font-weight: 700;
 }
+
+.table td.name a {
+  color: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.table td.name a:hover,
+.table td.name a:focus-visible {
+  text-decoration: underline solid;
+}
