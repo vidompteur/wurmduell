@@ -66,6 +66,11 @@ export const CONFIG = {
      * Leer = keine Links. Eurosky-/Bluesky-Konten sind über bsky.app erreichbar.
      */
     profileUrl: "https://bsky.app/profile/{id}" as string,
+    /**
+     * Eigene Profil-Vorlage je Handle-Domain (Handle endet auf die Domain). Eurosky-Konten gehen zu mu,
+     * dem Web-Client von Eurosky; alle anderen Handles und DIDs nutzen `profileUrl`.
+     */
+    profileUrlByDomain: { "eurosky.social": "https://mu.social/profile/{id}" } as Record<string, string>,
   },
   logs: {
     /**
