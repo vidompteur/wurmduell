@@ -198,3 +198,11 @@ export async function buildGlobalEntries(opts: BuildOptions): Promise<{ entries:
   }
   return { entries: sortEntries([...entries.values()]) as GlobalLadderEntry[], report };
 }
+
+/** Wählt den jüngeren Stand (nach `updatedAt`); bei Gleichstand den ersten. `null` zählt als nicht vorhanden. */
+export function newestLadder(...files: (GlobalLadderFile | null)[]): GlobalLadderFile | null {
+  const time = (f: GlobalLadderFile): number => (f.updatedAt ? Date.parse(f.updatedAt) || 0 : 0);
+  let best: GlobalLadderFile | null = null;
+  for (const f of files) if (f && (!best || time(f) > time(best))) best = f;
+  return best;
+}

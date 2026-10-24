@@ -79,7 +79,7 @@ Der Token steht öffentlich im Code und erlaubt nur das Einliefern; jemand könn
 
 ## Globale Rangliste
 
-Unter **Rangliste → Global** steht die Rangliste aller teilnehmenden Spieler. Sie ist eine statische Datei (`public/ladder.json`), die ein Skript aus den öffentlichen `de.wurmduell.ladderSummary`-Records der Spieler erzeugt (Spieler müssen dafür mindestens einmal angemeldet gespielt haben).
+Unter **Rangliste → Global** steht die Rangliste aller teilnehmenden Spieler. Das Spiel lädt dafür die aktuelle `ladder.json` direkt aus dem Repository (`ladder.url` in `src/config.ts`, vom Workflow gepflegt) und die mitgelieferte Datei und zeigt den jüngeren Stand; so ist die Rangliste auch ohne neues Deployment aktuell. „Zuletzt geändert“ ist der Zeitpunkt der letzten Änderung, nicht der letzten Prüfung. Sie ist eine statische Datei (`public/ladder.json`), die ein Skript aus den öffentlichen `de.wurmduell.ladderSummary`-Records der Spieler erzeugt (Spieler müssen dafür mindestens einmal angemeldet gespielt haben).
 
 **Profil-Links:** In der globalen Rangliste ist der Name ein Link zum Profil (`atproto.profileUrl` in `src/config.ts`, Standard `https://bsky.app/profile/{id}`; leer = keine Links). Handles auf `…eurosky.social` führen zu mu, dem Web-Client von Eurosky (`atproto.profileUrlByDomain`).
 

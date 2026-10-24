@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_GLOBAL_LADDER, type FetchLike, buildGlobalEntries, discoverPlayers, isPlausible, parseGlobalLadder } from "../src/ladder/globalLadder";
+import { EMPTY_GLOBAL_LADDER, type FetchLike, buildGlobalEntries, discoverPlayers, isPlausible, newestLadder, parseGlobalLadder } from "../src/ladder/globalLadder";
 
 const summary = (over: Record<string, unknown> = {}) => ({
   matches: 10, wins: 6, losses: 4, shotsFired: 40, shotsHit: 20, damageDealt: 900, damageTaken: 700,
@@ -110,5 +110,15 @@ describe("Globale Ladder", () => {
       expect(failed.error?.includes("500")).toBe(true);
       expect(await discoverPlayers(() => Promise.reject(new Error("offline")))).toEqual({ dids: [], error: "offline" });
     });
+  });
+
+  it("wählt den jüngeren Stand und kommt mit fehlenden Quellen zurecht", () => {
+    const old = { version: 1 as const, updatedAt: "2026-10-20T13:19:00.000Z", entries: [] };
+    const neu = { version: 1 as const, updatedAt: "2026-10-24T07:07:00.000Z", entries: [] };
+    expect(newestLadder(old, neu)).toBe(neu);
+    expect(newestLadder(neu, old)).toBe(neu);
+    expect(newestLadder(null, old)).toBe(old);
+    expect(newestLadder(null, null)).toBe(null);
+    expect(newestLadder({ ...old, updatedAt: null }, old)).toBe(old);
   });
 });

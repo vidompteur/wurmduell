@@ -72,6 +72,13 @@ export const CONFIG = {
      */
     profileUrlByDomain: { "eurosky.social": "https://mu.social/profile/{id}" } as Record<string, string>,
   },
+  ladder: {
+    /**
+     * Aktuelle globale Rangliste direkt aus dem Repository (vom stündlichen Workflow gepflegt), damit sie
+     * ohne neues Deployment aktuell ist. Leer oder nicht erreichbar = die mitgelieferte `ladder.json`.
+     */
+    url: "https://raw.githubusercontent.com/vidompteur/wurmduell/main/public/ladder.json" as string,
+  },
   logs: {
     /**
      * Better Stack Logs (HTTP-Ingest): „Ingesting host“ der Quelle (z. B. `s123456.eu-nbg-2.betterstackdata.com`)
