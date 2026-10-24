@@ -846,3 +846,7 @@ input[type="checkbox"] {
 .table td.name a:focus-visible {
   text-decoration: underline solid;
 }
+
+.table td.when {
+  white-space: nowrap;
+}

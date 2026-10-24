@@ -2,6 +2,7 @@ import { clear, confirmDialog, h, promptDialog } from "../ui/dom";
 import type { LadderStore } from "./LadderStore";
 import { accuracy, winRate } from "./LadderStore";
 import { loadGlobalLadder } from "./globalLadderClient";
+import { lastPlayed } from "./format";
 import { profileUrl } from "./profileLink";
 import type { LadderEntry } from "../types";
 import { t } from "../i18n";
@@ -32,7 +33,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
   };
 
   const table = (entries: readonly (LadderEntry & { handle?: string | null })[], canRename: boolean, link = false): HTMLElement => {
-    const head = ["rank", "name", "wins", "losses", "matches", "winrate", "accuracy", "damage", "streak"].map((c) => t(`ladder.col.${c}`));
+    const head = ["rank", "name", "wins", "losses", "matches", "winrate", "accuracy", "damage", "streak", "last"].map((c) => t(`ladder.col.${c}`));
     const rows = entries.map((e, i) =>
       h(
         "tr",
@@ -59,6 +60,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
         h("td", { class: "num", text: pct(accuracy(e)) }),
         h("td", { class: "num", text: String(e.damageDealt) }),
         h("td", { class: "num", text: String(e.bestWinStreak) }),
+        h("td", { class: "num when", text: lastPlayed(e.updatedAt) }),
       ),
     );
     return h(

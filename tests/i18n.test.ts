@@ -27,7 +27,7 @@ describe("Texte (de.properties)", () => {
       expect(has(`legend.${l}.key`)).toBe(true);
       expect(has(`legend.${l}.text`)).toBe(true);
     }
-    for (const c of ["rank", "name", "wins", "losses", "matches", "winrate", "accuracy", "damage", "streak"]) expect(has(`ladder.col.${c}`)).toBe(true);
+    for (const c of ["rank", "name", "wins", "losses", "matches", "winrate", "accuracy", "damage", "streak", "last"]) expect(has(`ladder.col.${c}`)).toBe(true);
     for (const n of ["0", "1", "n"]) expect(has(`setup.teleports.${n}`)).toBe(true);
     for (const n of ["2", "3"]) expect(has(`setup.teamSize.${n}`)).toBe(true);
   });
