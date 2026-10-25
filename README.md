@@ -1,8 +1,49 @@
-# Wurmduell
+<div align="center">
 
-Rundenbasiertes 2D-Artillery-Spiel im Browser, in dem Teams aus Würmern aufeinander schießen. Open Source ([MIT](LICENSE)), eine statische TypeScript-SPA ohne eigenen Server. Sie wird auf wisp.place im offenen AT Protocol veröffentlicht, die Rangliste liegt im eigenen Konto der Spieler:innen.
+# 🐛 Wurmduell
 
-Gespielt wird unter <https://wurmduell.wisp.place/>. Hotseat oder gegen den Computer (Einfach, Normal, Schwer), 2–3 Würmer pro Team. Das Gelände ist zerstörbar, Wind beeinflusst Bazooka-Schüsse, wer ins Wasser fällt, ertrinkt. Ergebnisse landen in einer lokalen Rangliste (im Browser gespeichert) und, wenn du angemeldet bist, in deinem PDS und der globalen Rangliste.
+**Rundenbasierte Wurmschlacht im Browser – Open Source, ohne Server, im offenen AT Protocol.**
+
+[![Jetzt spielen](https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_Jetzt_spielen-wurmduell.wisp.place-ff8fab?style=for-the-badge)](https://wurmduell.wisp.place/)
+
+[![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-blue.svg)](LICENSE)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7-646cff?logo=vite&logoColor=white)
+![AT Protocol](https://img.shields.io/badge/AT_Protocol-Login_%26_Sync-0085ff)
+![Sprachen](https://img.shields.io/badge/UI-Deutsch_%7C_English-lightgrey)
+
+<img src="docs/images/wurmduell.gif" alt="Gameplay: Zwei Teams schießen sich Löcher ins zerstörbare Gelände" width="640">
+
+</div>
+
+## Worum geht's?
+
+Zwei Teams aus 2–3 Würmern, ein zerstörbares Gelände, Wind und Wasser: Wer seine Gegner zuerst besiegt, gewinnt. Du spielst im **Hotseat** zu zweit oder gegen den **Computer** (Einfach, Normal, Schwer) – direkt im Browser, auf dem Desktop mit Tastatur.
+
+- 💥 **Zerstörbares Gelände**, zufällig erzeugte Karten, Wind beeinflusst Schüsse
+- 🚀 **Fünf Waffen:** Bazooka, Granate, Dynamit, Shotgun, Teleport (oder „Original Modus“ nur mit Bazooka)
+- 🏆 **Rangliste** lokal im Browser; mit Eurosky-/Bluesky-Login zusätzlich im **eigenen PDS** und in der **globalen Rangliste**
+- 🌍 Deutsch und Englisch, folgt der Browser-Sprache
+- 🔓 **Open Source (MIT)**, statische Seite, gehostet auf [wisp.place](https://wisp.place) im [AT Protocol](https://atproto.com)
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/menu.png" alt="Hauptmenü" width="300"><br><sub>Hauptmenü</sub></td>
+    <td align="center"><img src="docs/images/match.png" alt="Match" width="300"><br><sub>Im Spiel</sub></td>
+    <td align="center"><img src="docs/images/ladder.png" alt="Globale Rangliste" width="300"><br><sub>Globale Rangliste</sub></td>
+  </tr>
+</table>
+
+## Schnellstart
+
+```bash
+git clone https://github.com/vidompteur/wurmduell.git
+cd wurmduell
+npm install
+npm run dev   # http://localhost:5173/
+```
+
+Mehr dazu unter [Entwickeln](#entwickeln). Verlässt du eine laufende Partie, wird sie gewertet (siehe unten).
 
 ## Steuerung
 
