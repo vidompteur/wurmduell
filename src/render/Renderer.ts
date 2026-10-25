@@ -63,15 +63,12 @@ export class Renderer {
   private dprCap: number = CONFIG.view.maxDpr;
   private readonly quality = new QualityMonitor();
   private fixedDpr = false;
-  private skyCache: HTMLCanvasElement | null = null;
-  private skyKey = "";
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly game: Game,
   ) {
-    // Undurchsichtig (der Himmel füllt alles) und mit Low-Latency-Hinweis: schneller im Compositing von Chrome/Safari.
-    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
+    const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error(t("match.error.canvas"));
     this.ctx = ctx;
     // `?dpr=1` erzwingt eine feste Pixeldichte (zum Testen der Leistung).
@@ -252,41 +249,11 @@ export class Renderer {
     this.ctx.drawImage(tc, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
   }
 
-  /**
-   * Himmel, Sonne und Hügel: wird nur neu gezeichnet, wenn sich Größe oder (auf ganze Pixel
-   * gerundete) Parallaxe ändern. Steht die Kamera still, kostet der Hintergrund nur ein drawImage
-   * statt mehrerer bildschirmgroßer Füllungen (merklich in Safari ohne Hardware-Beschleunigung).
-   */
   private drawSky(w: number, h: number): void {
     const { ctx, camera } = this;
-    const px = Math.round((camera.x / WORLD_W - 0.5) * -60);
-    const par0 = Math.round((camera.x / WORLD_W - 0.5) * -120);
-    const par1 = Math.round((camera.x / WORLD_W - 0.5) * -220);
-    const key = `${w}x${h}|${px}|${par0}|${par1}`;
-    if (typeof document !== "undefined") {
-      let c = this.skyCache;
-      if (!c || c.width !== w || c.height !== h) {
-        c = document.createElement("canvas");
-        c.width = w;
-        c.height = h;
-        this.skyCache = c;
-        this.skyKey = "";
-      }
-      if (this.skyKey !== key) {
-        const cctx = c.getContext("2d", { alpha: false });
-        if (cctx) {
-          this.paintSky(cctx, w, h, px, [par0, par1]);
-          this.skyKey = key;
-        }
-      }
-      if (this.skyKey === key) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.drawImage(c, 0, 0);
-        return;
-      }
-    }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    this.paintSky(ctx, w, h, px, [par0, par1]);
+    const k = camera.x / WORLD_W - 0.5;
+    this.paintSky(ctx, w, h, k * -60, [k * -120, k * -220]);
   }
 
   private paintSky(ctx: CanvasRenderingContext2D, w: number, h: number, px: number, par: [number, number]): void {

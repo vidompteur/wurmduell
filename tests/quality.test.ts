@@ -13,24 +13,28 @@ describe("QualityMonitor", () => {
     expect(feed(new QualityMonitor(), 16.7, 200, 2) === null).toBe(true);
   });
 
-  it("senkt die Pixeldichte bei zu langsamen Bildern schrittweise bis 1", () => {
+  it("lässt eine 30-fps-Begrenzung (33,3 ms) in Ruhe", () => {
+    expect(feed(new QualityMonitor(), 33.4, 300, 1.5) === null).toBe(true);
+  });
+
+  it("senkt die Pixeldichte bei wirklich zu langsamen Bildern schrittweise bis 1", () => {
     const m = new QualityMonitor();
-    const a = feed(m, 40, 45, 2);
+    const a = feed(m, 60, 45, 2);
     expect(a).toBe(1.6);
-    const b = feed(m, 40, 45, a ?? 2);
+    const b = feed(m, 60, 45, a ?? 2);
     expect(b).toBe(1.28);
-    const c = feed(m, 40, 45, b ?? 2);
+    const c = feed(m, 60, 45, b ?? 2);
     expect(c).toBe(1.02);
-    expect(feed(m, 40, 45, 1) === null).toBe(true);
+    expect(feed(m, 60, 45, 1) === null).toBe(true);
   });
 
   it("geht nie unter die Untergrenze", () => {
-    expect(feed(new QualityMonitor(), 50, 45, 1.1)).toBe(1);
+    expect(feed(new QualityMonitor(), 80, 45, 1.1)).toBe(1);
   });
 
   it("ignoriert Ausreißer wie pausierte Tabs", () => {
     const m = new QualityMonitor();
-    expect(feed(m, 40, 30, 2) === null).toBe(true);
+    expect(feed(m, 60, 30, 2) === null).toBe(true);
     expect(m.push(5, 2) === null).toBe(true); // Tab war im Hintergrund: Messung beginnt neu
     expect(feed(m, 10, 100, 2) === null).toBe(true);
   });

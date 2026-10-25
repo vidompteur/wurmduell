@@ -8,8 +8,12 @@ export class QualityMonitor {
   private count = 0;
 
   constructor(
-    /** Schwelle in Millisekunden pro Bild, ab der heruntergeregelt wird (22 ≈ unter 45 Bilder/s). */
-    private readonly slowMs = 22,
+    /**
+     * Schwelle in Millisekunden pro Bild, ab der heruntergeregelt wird. Bewusst unter 30 Bilder/s (38 ms):
+     * Safari im Stromsparmodus und manche Displays begrenzen auf genau 30 Bilder/s (33,3 ms), das ist
+     * keine Überlastung, und eine niedrigere Auflösung würde nur das Bild verschlechtern.
+     */
+    private readonly slowMs = 38,
     /** So viele Bilder werden pro Messung gemittelt. */
     private readonly window = 45,
     /** Faktor pro Stufe. */
