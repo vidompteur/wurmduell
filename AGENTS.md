@@ -21,8 +21,8 @@ Rundenbasiertes 2D-Artillery-Spiel (Worms-artig) als statische TypeScript-SPA: V
 
 ## Konventionen
 
-- **Sprache:** Antworten, Commit-Messages, Doku und UI-Texte auf Deutsch.
-- **UI-Texte** nur in `src/i18n/de.properties`, Zugriff über `t("schluessel", { param })`. Keine Texte im Code. Neue Schlüssel prüft `tests/i18n.test.ts`.
+- **Sprache:** Antworten, Commit-Messages, Doku auf Deutsch; UI auf Deutsch und Englisch.
+- **UI-Texte** nur in `src/i18n/de.properties` (Deutsch, Referenz) und `src/i18n/en.properties` (Englisch), immer beide pflegen; Zugriff über `t("schluessel", { param })`. Keine Texte im Code. Zahlen/Datum mit `locale()` formatieren. `tests/i18n.test.ts` prüft, dass beide Dateien dieselben Schlüssel und Platzhalter haben.
 - **Standardwerte und URLs** zentral in `src/config.ts`, nicht verstreut im Code. Regel-/Physikkonstanten in `src/game/constants.ts` und `src/weapons/weapons.ts`.
 - **Spiellogik** (`src/game/`, `src/entities/`, `src/weapons/`, `src/ai/`, `src/terrain/`) ist DOM-frei und deterministisch (Seed-RNG in `src/game/rng.ts`), damit sie testbar bleibt. Der Bot nutzt dieselbe Physik wie das Spiel.
 - TypeScript strict; keine `any`-Abkürzungen, keine neuen Abhängigkeiten ohne Grund.
@@ -33,7 +33,7 @@ Rundenbasiertes 2D-Artillery-Spiel (Worms-artig) als statische TypeScript-SPA: V
 
 ```text
 src/config.ts       Defaults, URLs, Logging-Host
-src/i18n/           Texte und t()
+src/i18n/           Texte (de/en) und t()
 src/game/ ...       Spiellogik ohne DOM
 src/render/         Canvas-Renderer, Kamera, HUD
 src/ui/             Menü, Setup, Match, Konto-Box

@@ -5,10 +5,10 @@ import { loadGlobalLadder } from "./globalLadderClient";
 import { lastPlayed } from "./format";
 import { profileUrl } from "./profileLink";
 import type { LadderEntry } from "../types";
-import { t } from "../i18n";
+import { locale, t } from "../i18n";
 
 const pct = (v: number): string =>
-  `${(v * 100).toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 1 })} %`;
+  `${(v * 100).toLocaleString(locale(), { minimumFractionDigits: 0, maximumFractionDigits: 1 })} %`;
 
 export interface LadderUiOptions {
   onBack(): void;
@@ -93,7 +93,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
           return;
         }
         body.append(table(file.entries, false, true));
-        const when = file.updatedAt ? new Date(file.updatedAt).toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" }) : t("ladder.global.unknownDate");
+        const when = file.updatedAt ? new Date(file.updatedAt).toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" }) : t("ladder.global.unknownDate");
         body.append(h("p", { class: "muted small", text: t("ladder.global.updated", { when }) }));
       },
       () => {

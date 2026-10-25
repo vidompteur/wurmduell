@@ -1,4 +1,5 @@
 import "./styles.css";
+import { getLanguage, t } from "./i18n";
 import { Account } from "./atproto/Account";
 import { initTelemetry, logMatch, logMatchStart } from "./telemetry";
 import { Sound } from "./audio/Sound";
@@ -12,6 +13,11 @@ import { showMobileNoticeIfNeeded } from "./ui/MobileNotice";
 import { renderResult } from "./ui/ResultScreen";
 import { loadSettings } from "./ui/settings";
 import type { AiLevel, MatchConfig, MatchResult } from "./types";
+
+// Sprache des Dokuments passend zur gewählten Oberfläche (Seitentitel, Beschreibung, Screenreader).
+document.documentElement.lang = getLanguage();
+document.title = t("app.title");
+document.querySelector('meta[name="description"]')?.setAttribute("content", t("app.description"));
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) throw new Error("#app fehlt");

@@ -5,7 +5,7 @@ import type { Settings } from "../types";
 import { createAccountBox } from "./AccountBox";
 import { clear, h } from "./dom";
 import { ZOOM_MAX, ZOOM_MIN, saveSettings } from "./settings";
-import { t } from "../i18n";
+import { locale, t } from "../i18n";
 
 export interface MenuNav {
   newGame(): void;
@@ -104,7 +104,7 @@ export function renderSettings(root: HTMLElement, settings: Settings, sound: Sou
     sound.uiClick();
   });
 
-  const fmtZoom = (z: number): string => `${z.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}×`;
+  const fmtZoom = (z: number): string => `${z.toLocaleString(locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })}×`;
   const zoomValue = h("span", { class: "muted", text: fmtZoom(settings.zoom) });
   const zoom = h("input", {
     type: "range",

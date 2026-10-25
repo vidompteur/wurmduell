@@ -1,3 +1,4 @@
+import { locale } from "../i18n";
 import type { Ladder, LadderEntry, MatchResult, TeamStats } from "../types";
 
 export const LADDER_KEY = "wurmduell.ladder.v1";
@@ -45,7 +46,7 @@ export function sortEntries(entries: readonly LadderEntry[]): LadderEntry[] {
     const acc = accuracy(b) - accuracy(a);
     if (acc !== 0) return acc;
     if (b.damageDealt !== a.damageDealt) return b.damageDealt - a.damageDealt;
-    return a.name.localeCompare(b.name, "de");
+    return a.name.localeCompare(b.name, locale());
   });
 }
 

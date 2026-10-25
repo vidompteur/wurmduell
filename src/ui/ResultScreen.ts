@@ -1,7 +1,7 @@
 import { accuracyOf } from "../game/MatchStats";
 import type { MatchResult } from "../types";
 import { clear, h } from "./dom";
-import { t } from "../i18n";
+import { locale, t } from "../i18n";
 
 export interface ResultOptions {
   onRematch(): void;
@@ -10,7 +10,7 @@ export interface ResultOptions {
 }
 
 const pct = (v: number): string =>
-  `${(v * 100).toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 1 })} %`;
+  `${(v * 100).toLocaleString(locale(), { minimumFractionDigits: 0, maximumFractionDigits: 1 })} %`;
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);

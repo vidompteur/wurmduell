@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { format, parseProperties, t, tList } from "../src/i18n";
+import deRaw from "../src/i18n/de.properties?raw";
+import enRaw from "../src/i18n/en.properties?raw";
+import { format, getLanguage, locale, parseProperties, pickLanguage, setLanguage, t, tList } from "../src/i18n";
 
 /** Prüft, dass ein Schlüssel einen echten Text liefert (fehlende Schlüssel geben den Schlüssel zurück). */
 const has = (key: string): boolean => t(key) !== key;
@@ -34,5 +36,40 @@ describe("Texte (de.properties)", () => {
 
   it("hat genug Wurmnamen für beide Teams", () => {
     expect(tList("setup.wormNames").length).toBeGreaterThanOrEqual(6);
+  });
+});
+
+describe("Sprachen (de/en)", () => {
+  it("wählt die erste unterstützte Browser-Sprache, sonst Deutsch", () => {
+    expect(pickLanguage(["en-US", "de"])).toBe("en");
+    expect(pickLanguage(["fr-FR", "de-AT", "en"])).toBe("de");
+    expect(pickLanguage(["fr", "ja"])).toBe("de");
+    expect(pickLanguage([])).toBe("de");
+  });
+
+  it("?lang überschreibt die Browser-Sprache", () => {
+    expect(pickLanguage(["de"], "en")).toBe("en");
+    expect(pickLanguage(["en"], "xx")).toBe("en");
+  });
+
+  it("englische Datei hat genau dieselben Schlüssel und Platzhalter wie die deutsche", () => {
+    const de = parseProperties(deRaw);
+    const en = parseProperties(enRaw);
+    expect(Object.keys(en).sort()).toEqual(Object.keys(de).sort());
+    const holders = (s: string): string => (s.match(/\{\w+\}/g) ?? []).sort().join(",");
+    const wrong = Object.keys(de).filter((k) => holders(de[k]) !== holders(en[k]));
+    expect(wrong).toEqual([]);
+    expect(Object.values(en).every((v) => v !== "")).toBe(true);
+  });
+
+  it("t() liefert je nach Sprache den passenden Text", () => {
+    setLanguage("en");
+    expect(getLanguage()).toBe("en");
+    expect(t("hud.turn", { team: "Red", worm: "Earthy" })).toBe("Red: Earthy's turn");
+    expect(locale().startsWith("en")).toBe(true);
+    expect(tList("setup.wormNames").length).toBeGreaterThanOrEqual(6);
+    setLanguage("de");
+    expect(t("menu.newGame")).toBe("Neues Spiel");
+    expect(locale()).toBe("de-DE");
   });
 });

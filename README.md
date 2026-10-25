@@ -97,11 +97,13 @@ Antwortet der Relay nicht, nutzt das Skript nur `players.json` (steht im Log als
 
 **Hinweise:** Die Summaries schreiben die Spieler selbst und sie lassen sich daher fälschen; das Skript verwirft nur offensichtlich unplausible Werte (z. B. mehr Treffer als Schüsse). Antwortet ein PDS nicht, bleibt der alte Stand des Spielers erhalten. GitHub pausiert geplante Workflows in Repositories ohne Aktivität nach 60 Tagen.
 
-## Texte ändern
+## Sprachen und Texte
 
-Alle sichtbaren Texte der Oberfläche stehen zentral in [`src/i18n/de.properties`](src/i18n/de.properties) (Format `schluessel=Text`, `#` für Kommentare, Platzhalter wie `{name}`). Im Code werden sie über `t("schluessel", { name: "…" })` abgerufen. Dort änderst du Beschriftungen, Meldungen, Waffennamen, Wurmnamen (kommagetrennt, `setup.wormNames`) und die Steuerungs-Legende. Fehlt ein Schlüssel, erscheint er selbst als Text und eine Warnung in der Browser-Konsole; der Test `tests/i18n.test.ts` prüft das Format und die dynamisch gebildeten Schlüssel.
+Die Oberfläche gibt es auf **Deutsch** und **Englisch**. Die Sprache folgt der Browser-Einstellung (erste unterstützte Sprache der Liste); bei allen anderen Sprachen bleibt es Deutsch. Zum Testen hängst du `?lang=en` oder `?lang=de` an die Adresse. Datum, Zahlen und Sortierung richten sich nach der Sprache (`locale()`).
 
-Nicht in der Datei stehen die statischen Texte in `index.html` (Seitentitel, Beschreibung) sowie Log-Ausgaben für Entwickler (Konsole, Skript `ladder:build`).
+Alle sichtbaren Texte stehen zentral in [`src/i18n/de.properties`](src/i18n/de.properties) (Referenz) und [`src/i18n/en.properties`](src/i18n/en.properties) (Format `schluessel=Text`, `#` für Kommentare, Platzhalter wie `{name}`). Im Code werden sie über `t("schluessel", { name: "…" })` abgerufen. Dort änderst du Beschriftungen, Meldungen, Waffennamen, Wurmnamen (kommagetrennt, `setup.wormNames`) und die Steuerungs-Legende. Fehlt ein Schlüssel in einer Sprache, erscheint der deutsche Text; fehlt er überall, der Schlüssel selbst mit einer Warnung in der Konsole. Der Test `tests/i18n.test.ts` prüft das Format, die dynamisch gebildeten Schlüssel und dass beide Dateien dieselben Schlüssel und Platzhalter haben. Eine weitere Sprache: neue `xx.properties` anlegen und in `src/i18n/index.ts` eintragen.
+
+Nicht in den Dateien stehen Log-Ausgaben für Entwickler (Konsole, Skript `ladder:build`) und die statischen Texte in `index.html`, die beim Start überschrieben werden (Titel, Beschreibung).
 
 **Open-Source-Hinweis:** Der Hinweis im Hauptmenü (Open Source, AT Protocol, wisp.place) nutzt die Schlüssel `menu.about*`; die Link-Ziele stehen in `CONFIG.about` in `src/config.ts` (leer = Link entfällt).
 
