@@ -1,9 +1,8 @@
-# wurmduell
-Ein Spiel wie Worms in dem zwei Würmer gegeneinander kämpfen und aufeinander schießen.
+# Wurmduell
 
-# Spielen
+Rundenbasiertes 2D-Artillery-Spiel im Browser, in dem Teams aus Würmern aufeinander schießen. Open Source ([MIT](LICENSE)), eine statische TypeScript-SPA ohne eigenen Server. Sie wird auf wisp.place im offenen AT Protocol veröffentlicht, die Rangliste liegt im eigenen Konto der Spieler:innen.
 
-Rundenbasiertes Artillerie-Spiel für zwei Teams (2–3 Würmer pro Team): im Hotseat gegeneinander oder gegen den Computer (Einfach, Normal, Schwer). Das Gelände ist zerstörbar, Wind beeinflusst Bazooka-Schüsse, wer ins Wasser fällt, ertrinkt. Ergebnisse landen in einer lokalen Rangliste (im Browser gespeichert).
+Gespielt wird unter <https://wurmduell.wisp.place/>. Hotseat oder gegen den Computer (Einfach, Normal, Schwer), 2–3 Würmer pro Team. Das Gelände ist zerstörbar, Wind beeinflusst Bazooka-Schüsse, wer ins Wasser fällt, ertrinkt. Ergebnisse landen in einer lokalen Rangliste (im Browser gespeichert) und, wenn du angemeldet bist, in deinem PDS und der globalen Rangliste.
 
 ## Steuerung
 
@@ -47,11 +46,11 @@ Alle Defaults stehen zentral in [`src/config.ts`](src/config.ts):
 
 Bereits im Browser gespeicherte Einstellungen haben Vorrang vor diesen Defaults; zum Testen den localStorage-Eintrag `wurmduell.settings.v1 löschen. Regel- und Physikkonstanten (Zugzeit, Schwerkraft, Wurmgröße, Waffenschaden) liegen in `src/game/constants.ts` bzw. `src/weapons/weapons.ts`.
 
-## Optional: Anmeldung und Ranglisten-Sync (ATProto)
+## Anmeldung und Ranglisten-Sync (ATProto)
 
-Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem ATProto-/Eurosky-Account anmeldet, bekommt seine Rangliste zusätzlich im eigenen PDS gespeichert und sieht sie auf jedem Gerät.
+Das Spiel ist ohne Konto vollständig spielbar; die Anmeldung ist freiwillig. Wer sich im Hauptmenü mit einem ATProto-/Eurosky-Account anmeldet, bekommt seine Rangliste zusätzlich im eigenen PDS gespeichert und sieht sie auf jedem Gerät.
 
-- **Nur auf der veröffentlichten Seite:** Die Anmeldung läuft über OAuth und braucht die öffentliche `client-metadata.json` (siehe „Handle konfigurieren"). Lokal mit `npm run dev` zeigt das Menü nur einen Hinweis.
+- **Nur auf der veröffentlichten Seite:** Die Anmeldung läuft über OAuth und braucht die öffentliche `client-metadata.json` (siehe „Eigene Instanz veröffentlichen“). Lokal mit `npm run dev` zeigt das Menü nur einen Hinweis.
 - **Identität:** Spieler 1 ist dann an die DID gebunden (nicht an den Handle) und im Match-Setup gesperrt.
 - **Gespeicherte Records** im PDS (Lexicons unter `lexicons/`): `de.wurmduell.ladderSummary` (ein Eintrag, `rkey: self`) und pro Partie `de.wurmduell.matchResult`.
 - **Offline-sicher:** Jede Partie wird zuerst lokal gespeichert und in eine Sync-Queue gelegt. Schlägt der PDS-Zugriff fehl, bleibt sie dort und wird beim nächsten Start oder Spiel nachgeschickt. Auch Abbruch (Tab schließen) landet in der Queue.
@@ -63,7 +62,7 @@ Das Spiel ist ohne Konto vollständig spielbar. Wer sich im Hauptmenü mit einem
 
 Code: `src/atproto/` (`auth.ts` OAuth, `Account.ts` Zustand, `sync.ts` Abgleich und Queue, `records.ts` Records und Merge-Regel).
 
-## Logging mit Better Stack (optional)
+## Logging mit Better Stack (abschaltbar)
 
 Das Spiel kann Logzeilen an [Better Stack Logs](https://betterstack.com/docs/logs/ingesting-data/http/logs/) schicken (einfacher HTTP-POST, kein SDK). In `src/config.ts` unter `logs` den **Ingesting host** und den **Source-Token** der Quelle eintragen; ohne Host wird nichts gesendet.
 
@@ -104,6 +103,8 @@ Alle sichtbaren Texte der Oberfläche stehen zentral in [`src/i18n/de.properties
 
 Nicht in der Datei stehen die statischen Texte in `index.html` (Seitentitel, Beschreibung) sowie Log-Ausgaben für Entwickler (Konsole, Skript `ladder:build`).
 
+**Open-Source-Hinweis:** Der Hinweis im Hauptmenü (Open Source, AT Protocol, wisp.place) nutzt die Schlüssel `menu.about*`; die Link-Ziele stehen in `CONFIG.about` in `src/config.ts` (leer = Link entfällt).
+
 ## Projektstruktur
 
 ```text
@@ -123,237 +124,50 @@ tests/             Vitest-Tests (Physik, Spiellogik, Rangliste)
 
 Tests laufen mit `npm test`.
 
-# Dev Guide 
+## Entwickeln
 
-Dieses Kapitel erklärt, wie du die Entwicklungsumgebung einrichtest, das Spiel lokal startest und als statische Seite auf wisp.place veröffentlichst. Node.js und npm brauchst du nur auf deinem Entwicklungsrechner; die fertige Seite läuft im Browser und benötigt kein Node auf dem Gerät der Spieler. [docs.npmjs](https://docs.npmjs.com/cli/v11/configuring-npm/install/)
-
-## Voraussetzungen
-
-Du brauchst:
-
-- Ein Terminal
-- Git, falls du das Projekt aus einem Repository klonst
-- Node.js inklusive npm
-- Einen ATProto-/Eurosky-Account für wisp.place
-- Optional: IntelliJ oder WebStorm mit Coding-Agent
-
-Prüfe zuerst, ob Node und npm bereits installiert sind:
+Voraussetzungen: Node.js (22 empfohlen, am besten über einen Version-Manager wie nvm) und Git.
 
 ```bash
-node -v
-npm -v
+git clone https://github.com/vidompteur/wurmduell.git
+cd wurmduell
+npm install
+npm run dev   # http://localhost:5173/
 ```
-
-Wenn beide Befehle Versionsnummern ausgeben, kannst du direkt mit dem Projekt starten. npm empfiehlt ausdrücklich die Installation über einen Node-Version-Manager wie nvm; das vermeidet typische Berechtigungsprobleme bei global installierten Paketen.
-
-## Voraussetzungen
-
-Du brauchst Node.js/npm und Git (falls geklonst). Installiere Node.js über einen Version-Manager wie nvm (empfohlen durch npm), um Berechtigungsprobleme zu vermeiden.
-
-```bash
-# Prüfen
-node -v && npm -v
-
-# Projekt klonen & installieren
-cd wurmduell && npm install
-
-# Entwicklermodus starten
-npm run dev  # läuft auf http://localhost:5173/
-
-## Lokal entwickeln
-
-Starte den Entwicklungsserver:
-
-```bash
-npm run dev
-```
-
-Vite zeigt dir anschließend eine lokale Adresse an, normalerweise:
-
-```text
-http://localhost:5173/
-```
-
-Öffne diese Adresse im Browser. Bei Änderungen an TypeScript, CSS oder HTML lädt Vite die Seite automatisch neu.
-
-Beende den Dev-Server mit `Ctrl + C`.
-
-## Wichtige npm-Befehle
 
 | Befehl | Zweck |
 |---|---|
-| `npm install` | Abhängigkeiten installieren |
-| `npm run dev` | Entwicklungsserver starten |
-| `npm run build` | Produktions-Build nach `dist/` erzeugen |
-| `npm run preview` | Den fertigen Build lokal testen |
-| `npm test` | Unit-Tests (Vitest) ausführen |
+| `npm run dev` | Entwicklungsserver (lädt bei Änderungen neu) |
+| `npm test` | Unit-Tests (Vitest) |
+| `npm run build` | TypeScript prüfen und Produktions-Build nach `dist/` |
+| `npm run preview` | Fertigen Build lokal ansehen |
 | `npm run ladder:build` | Globale Rangliste (`public/ladder.json`) neu erzeugen |
-| `npx wispctl --help` | wisp-CLI ohne globale Installation ausführen |
+| `npm run deploy` | Build und Veröffentlichung auf wisp.place |
 
-`npm run build` kompiliert TypeScript und erzeugt die statischen Dateien in `dist/`. Diese Dateien sind später genau das, was wisp.place ausliefert. 
+Vor jedem Commit sollten `npm test` und `npm run build` durchlaufen. `package-lock.json` gehört ins Repository, damit Builds und der Workflow dieselben Versionen verwenden.
 
-## Handle konfigurieren
-
-Ersetze vor dem ersten Deployment `<HANDLE>` durch deinen ATProto-/Eurosky-Handle, zum Beispiel `steini7.eurosky.social`.
-
-Betroffene Dateien:
-
-```text
-package.json
-public/client-metadata.json
-```
-
-Automatisch ersetzen:
+## Veröffentlichen (wisp.place)
 
 ```bash
-sed -i 's/<HANDLE>/deinname.bsky.social/g' package.json public/client-metadata.json
-```
-
-Danach sollte in `package.json` etwa stehen:
-
-```json
-{
-  "scripts": {
-    "deploy": "npm run build && wispctl deploy deinname.bsky.social --path ./dist --site wurmduell"
-  }
-}
-```
-
-Und in `public/client-metadata.json`:
-
-```json
-{
-  "client_id": "https://sites.wisp.place/deinname.bsky.social/wurmduell/client-metadata.json",
-  "client_uri": "https://sites.wisp.place/deinname.bsky.social/wurmduell/",
-  "redirect_uris": [
-    "https://sites.wisp.place/deinname.bsky.social/wurmduell/"
-  ]
-}
-```
-
-Die `client_id` muss exakt der URL entsprechen, unter der `client-metadata.json` später erreichbar ist. Dieses Projekt nutzt die Adresse `https://wurmduell.wisp.place/` (in `public/client-metadata.json` und `atproto.appUrl` in `src/config.ts`). Wichtig: Spiele immer über **diese** Adresse; der Browser speichert den Login pro Domain, und eine abweichende Domain (z. B. `sites.wisp.place/...`) führt zu „Unknown authorization session“. Das Spiel wechselt beim Anmelden von selbst auf `appUrl`.
-
-## Bei wisp.place anmelden
-
-Melde dich einmalig bei wisp an:
-
-```bash
-npx wispctl login deinname.bsky.social
-```
-
-Der Browser öffnet sich zur Authentifizierung. Nach erfolgreichem Login kann wispctl in diesem Account deployen. Alternativ kannst du dich direkt beim Deploy authentifizieren und wispctl unterstützt auch die Verwendung eines App-Passworts über `WISPCTL_APP_PASSWORD`.
-
-## Erstmals deployen
-
-```bash
+npx wispctl login deinname.bsky.social   # einmalig, öffnet den Browser
 npm run deploy
 ```
 
-Das Script macht Folgendes:
+`deploy` baut das Projekt und lädt `dist/` per `wispctl` in den PDS des Accounts. Der Handle steht im Script `deploy` in der `package.json`; der Site-Name ist `wurmduell`.
 
-1. TypeScript prüfen bzw. kompilieren.
-2. Vite-Build nach `dist/` erzeugen.
-3. `wispctl deploy` starten.
-4. Den Inhalt von `dist/` in deinen PDS hochladen.
-5. Die Seite über wisp.place veröffentlichen.
+**Eigene Instanz:** Passe den Handle im `deploy`-Script an. In `public/client-metadata.json` (`client_id`, `client_uri`, `redirect_uris`) und `atproto.appUrl` in `src/config.ts` muss exakt die Adresse stehen, unter der die Seite erreichbar ist (hier `https://wurmduell.wisp.place/`). Spiele immer über diese Adresse: Der Browser speichert den Login pro Domain, eine abweichende Domain führt zu „Unknown authorization session“. Beim Anmelden wechselt das Spiel deshalb von selbst auf `appUrl`.
 
-Danach ist das Spiel erreichbar unter:
-
-```text
-https://sites.wisp.place/deinname.bsky.social/wurmduell/
-```
-
-wispctl kann mit `--path ./dist --site wurmduell` direkt aus dem Projekt heraus deployen; der Login erfolgt einmalig über den Browser. [blog.wisp](https://blog.wisp.place/posts/wispctl-1-3-1/)
-
-## Weitere Updates deployen
-
-Nach Änderungen genügt:
-
-```bash
-npm run deploy
-```
-
-Der Build wird neu erzeugt und die aktuelle Version veröffentlicht. Du musst dich normalerweise nicht erneut anmelden, solange die wisp-Session gültig ist. [blog.wisp](https://blog.wisp.place/posts/wispctl-1-3-1/)
-
-## Build lokal testen
-
-Bevor du deployst, kannst du den fertigen Build prüfen:
-
-```bash
-npm run build
-npm run preview
-```
-
-Vite startet dann einen lokalen Server für den Inhalt von `dist/`. Das ist sinnvoll, um Probleme zu finden, die nur im Produktions-Build auftreten.
-
-## Git-Workflow
-
-Empfohlene `.gitignore`-Einträge:
-
-```text
-node_modules/
-dist/
-.env
-.env.*
-*.local
-```
-
-Typischer Ablauf:
-
-```bash
-git status
-git add .
-git commit -m "feat: terrain generator and destructible map"
-git push
-```
-
-`node_modules/` enthält installierte Pakete und sollte nie ins Repository. `dist/` ist ein Build-Artefakt und wird bei jedem Deploy neu erzeugt.
-
-## Troubleshooting
+## Fehlersuche
 
 | Problem | Lösung |
 |---|---|
-| `npm: command not found` | Node.js/npm installieren oder Terminal neu starten |
-| `node: command not found` | nvm laden: `source ~/.nvm/nvm.sh`, dann `nvm use --lts` |
+| `npm` oder `node` nicht gefunden | Node.js installieren oder nvm laden: `source ~/.nvm/nvm.sh && nvm use --lts` |
 | `EACCES` beim globalen npm-Install | nvm verwenden statt `sudo npm install -g` |
-| Vite startet nicht | `rm -rf node_modules package-lock.json && npm install` |
+| Vite startet nicht | `rm -rf node_modules && npm ci` |
 | Deploy schlägt fehl | `npx wispctl login deinname.bsky.social` erneut ausführen |
-| Falsche OAuth-Redirect-URL | `<HANDLE>` in `public/client-metadata.json` und `package.json` prüfen |
-| Änderungen erscheinen nicht online | Cache prüfen, `npm run build` ausführen und erneut deployen |
-
-npm rät von globalen Installationen über System-Installer ab, weil daraus häufig Berechtigungsfehler entstehen; ein Version-Manager wie nvm ist die robustere Lösung. [docs.npmjs](https://docs.npmjs.com/cli/v11/configuring-npm/install/)
-
-## Kurzcheckliste
-
-```bash
-# 1. Node und npm prüfen
-node -v
-npm -v
-
-# 2. Projekt vorbereiten
-cd wurmduell
-npm install
-
-# 3. Handle setzen
-sed -i 's/<HANDLE>/deinname.bsky.social/g' package.json public/client-metadata.json
-
-# 4. Lokal testen
-npm run dev
-
-# 5. Bei wisp anmelden
-npx wispctl login deinname.bsky.social
-
-# 6. Veröffentlichen
-npm run deploy
-```
-
-Danach ist dein aktueller Stand unter `https://sites.wisp.place/deinname.bsky.social/wurmduell/` verfügbar.
-
-## Open-Source-Hinweis
-
-Im Hauptmenü steht unter dem Konto-Feld ein kurzer Hinweis (Open Source, AT Protocol, wisp.place) mit Links.
-Text: `menu.about*` in `src/i18n/de.properties`, Link-Ziele: `CONFIG.about` in `src/config.ts` (leer lassen, um einen Link zu entfernen).
+| Login: „invalid scope“ oder falsche Redirect-URL | `public/client-metadata.json` und `atproto.appUrl` prüfen |
+| Änderungen erscheinen nicht online | Browser-Cache leeren, `npm run build` und erneut deployen |
 
 ## Lizenz
 
-[MIT](LICENSE) – frei nutz-, änder- und weiterverbreitbar. Lexikon-Schemas (`lexicons/`) und Code stehen unter derselben Lizenz.
+[MIT](LICENSE): frei nutz-, änder- und weiterverbreitbar, auch die Lexicons unter `lexicons/`.
