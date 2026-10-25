@@ -171,7 +171,7 @@ npm run deploy
 ## Weitere Dokumente
 
 - [`docs/spec.md`](docs/spec.md): ursprüngliche Spezifikation des Spiels
-- [`docs/wisp-place.md`](docs/wisp-place.md): Notizen zur `wispctl`-CLI
+- [`skills/wisp-place/SKILL.md`](skills/wisp-place/SKILL.md): Skill für den Coding-Agent (Deploy mit `wispctl`)
 
 ## Lizenz
 
