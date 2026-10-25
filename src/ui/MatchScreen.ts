@@ -7,6 +7,7 @@ import { GameLoop } from "../game/GameLoop";
 import type { GameEvent } from "../game/GameState";
 import { hashSeed, mulberry32, randomSeed } from "../game/rng";
 import { Hud } from "../render/Hud";
+import { PerfOverlay } from "./PerfOverlay";
 import { Renderer } from "../render/Renderer";
 import { generateMap } from "../terrain/MapGenerator";
 import type { InputState, MatchConfig, MatchResult } from "../types";
@@ -165,7 +166,11 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
   };
 
   // ------------------------------------------------------------------ Loop
+  const perf = new URLSearchParams(location.search).has("perf") ? new PerfOverlay() : null;
+  if (perf) stage.append(perf.el);
+  let updateMs = 0;
   const update = (dt: number): void => {
+    const t0 = perf ? performance.now() : 0;
     let state: InputState = IDLE_INPUT;
     if (!game.over) {
       const bot = bots[game.turns.activeTeam];
@@ -173,15 +178,21 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
     }
     game.input = state;
     game.tick(dt);
+    if (perf) updateMs += performance.now() - t0;
   };
 
   const render = (frameDt: number): void => {
+    const t0 = perf ? performance.now() : 0;
     renderer.adaptQuality(frameDt);
     renderer.updateEffects(frameDt);
     const f = renderer.focusPoint();
     renderer.camera.follow(f.x, f.y, frameDt);
     renderer.render();
     hud.update();
+    if (perf) {
+      perf.frame(frameDt * 1000, updateMs, performance.now() - t0, canvas, renderer.dpr);
+      updateMs = 0;
+    }
   };
 
   const loop = new GameLoop(update, render);

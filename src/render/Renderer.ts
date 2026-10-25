@@ -62,14 +62,24 @@ export class Renderer {
   /** Aktuelle Obergrenze der Pixeldichte; sinkt bei zu geringer Bildrate (siehe QualityMonitor). */
   private dprCap: number = CONFIG.view.maxDpr;
   private readonly quality = new QualityMonitor();
+  private fixedDpr = false;
+  private skyCache: HTMLCanvasElement | null = null;
+  private skyKey = "";
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly game: Game,
   ) {
-    const ctx = canvas.getContext("2d");
+    // Undurchsichtig (der Himmel füllt alles) und mit Low-Latency-Hinweis: schneller im Compositing von Chrome/Safari.
+    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
     if (!ctx) throw new Error(t("match.error.canvas"));
     this.ctx = ctx;
+    // `?dpr=1` erzwingt eine feste Pixeldichte (zum Testen der Leistung).
+    const forced = Number(new URLSearchParams(location.search).get("dpr"));
+    if (forced >= 0.5 && forced <= 3) {
+      this.dprCap = forced;
+      this.fixedDpr = true;
+    }
   }
 
   /** Passt die Canvas-Auflösung an die Anzeigegröße an. */
@@ -88,7 +98,7 @@ export class Renderer {
 
   /** Beobachtet die Bildrate und senkt bei Bedarf die Auflösung; die sichtbare Größe bleibt gleich. */
   adaptQuality(frameDt: number): void {
-    if (!CONFIG.view.adaptiveQuality) return;
+    if (!CONFIG.view.adaptiveQuality || this.fixedDpr) return;
     const next = this.quality.push(frameDt, this.dpr);
     if (next === null) return;
     const before = this.dpr;
@@ -242,9 +252,44 @@ export class Renderer {
     this.ctx.drawImage(tc, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
   }
 
+  /**
+   * Himmel, Sonne und Hügel: wird nur neu gezeichnet, wenn sich Größe oder (auf ganze Pixel
+   * gerundete) Parallaxe ändern. Steht die Kamera still, kostet der Hintergrund nur ein drawImage
+   * statt mehrerer bildschirmgroßer Füllungen (merklich in Safari ohne Hardware-Beschleunigung).
+   */
   private drawSky(w: number, h: number): void {
     const { ctx, camera } = this;
+    const px = Math.round((camera.x / WORLD_W - 0.5) * -60);
+    const par0 = Math.round((camera.x / WORLD_W - 0.5) * -120);
+    const par1 = Math.round((camera.x / WORLD_W - 0.5) * -220);
+    const key = `${w}x${h}|${px}|${par0}|${par1}`;
+    if (typeof document !== "undefined") {
+      let c = this.skyCache;
+      if (!c || c.width !== w || c.height !== h) {
+        c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        this.skyCache = c;
+        this.skyKey = "";
+      }
+      if (this.skyKey !== key) {
+        const cctx = c.getContext("2d", { alpha: false });
+        if (cctx) {
+          this.paintSky(cctx, w, h, px, [par0, par1]);
+          this.skyKey = key;
+        }
+      }
+      if (this.skyKey === key) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(c, 0, 0);
+        return;
+      }
+    }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.paintSky(ctx, w, h, px, [par0, par1]);
+  }
+
+  private paintSky(ctx: CanvasRenderingContext2D, w: number, h: number, px: number, par: [number, number]): void {
     const g = ctx.createLinearGradient(0, 0, 0, h);
     g.addColorStop(0, "#2b5fa8");
     g.addColorStop(0.55, "#7fb8e6");
@@ -253,7 +298,6 @@ export class Renderer {
     ctx.fillRect(0, 0, w, h);
 
     // Sonne und ferne Hügel mit leichter Parallaxe
-    const px = (camera.x / WORLD_W - 0.5) * -60;
     ctx.fillStyle = "rgba(255,244,200,0.9)";
     ctx.beginPath();
     ctx.arc(w * 0.78 + px, h * 0.2, Math.max(24, Math.min(w, h) * 0.07), 0, Math.PI * 2);
@@ -262,9 +306,8 @@ export class Renderer {
       ctx.fillStyle = layer === 0 ? "rgba(70,110,150,0.35)" : "rgba(50,90,110,0.45)";
       ctx.beginPath();
       ctx.moveTo(0, h);
-      const par = (camera.x / WORLD_W - 0.5) * (layer === 0 ? -120 : -220);
       for (let x = 0; x <= w; x += 24) {
-        const y = h * (0.7 + layer * 0.08) + Math.sin((x + par) / (140 - layer * 40) + layer * 2) * h * 0.04;
+        const y = h * (0.7 + layer * 0.08) + Math.sin((x + par[layer]!) / (140 - layer * 40) + layer * 2) * h * 0.04;
         ctx.lineTo(x, y);
       }
       ctx.lineTo(w, h);
@@ -279,17 +322,25 @@ export class Renderer {
 
   private drawWaterBack(): void {
     const { ctx } = this;
+    const [x0, x1] = this.visibleX();
     ctx.fillStyle = "rgba(20,60,120,0.9)";
-    ctx.fillRect(-1500, WATER_Y + 6, WORLD_W + 3000, WORLD_H - WATER_Y + 1500);
+    ctx.fillRect(x0, WATER_Y + 6, x1 - x0, WORLD_H - WATER_Y + 1500);
+  }
+
+  /** Sichtbarer Weltbereich in x (mit Rand), auf 16er-Raster gerundet. */
+  private visibleX(): [number, number] {
+    const { camera } = this;
+    const half = camera.viewW / (2 * camera.zoom) + 48 + this.shake;
+    return [Math.floor((camera.x - half) / 16) * 16, Math.ceil((camera.x + half) / 16) * 16];
   }
 
   private drawWaterFront(): void {
     const { ctx } = this;
+    const [x0, x1] = this.visibleX();
     ctx.beginPath();
-    ctx.moveTo(-1500, WORLD_H + 1500);
-    ctx.lineTo(-1500, this.waveY(-1500, 4, 0));
-    for (let x = -1500; x <= WORLD_W + 1500; x += 16) ctx.lineTo(x, this.waveY(x, 4, 0));
-    ctx.lineTo(WORLD_W + 1500, WORLD_H + 1500);
+    ctx.moveTo(x0, WORLD_H + 1500);
+    for (let x = x0; x <= x1; x += 16) ctx.lineTo(x, this.waveY(x, 4, 0));
+    ctx.lineTo(x1, WORLD_H + 1500);
     ctx.closePath();
     const g = ctx.createLinearGradient(0, WATER_Y - 10, 0, WATER_Y + 160);
     g.addColorStop(0, "rgba(90,170,235,0.62)");
@@ -299,9 +350,9 @@ export class Renderer {
     ctx.strokeStyle = "rgba(220,245,255,0.7)";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    for (let x = -1500; x <= WORLD_W + 1500; x += 16) {
+    for (let x = x0; x <= x1; x += 16) {
       const y = this.waveY(x, 4, 0);
-      if (x === -1500) ctx.moveTo(x, y);
+      if (x === x0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
