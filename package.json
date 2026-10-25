@@ -1,6 +1,7 @@
 {
   "name": "wurmduell",
   "private": true,
+  "license": "MIT",
   "version": "0.1.0",
   "description": "Rundenbasiertes 2D-Artillery-Spiel als statische TypeScript-SPA",
   "type": "module",

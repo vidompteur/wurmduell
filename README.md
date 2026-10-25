@@ -353,3 +353,7 @@ Danach ist dein aktueller Stand unter `https://sites.wisp.place/deinname.bsky.so
 
 Im Hauptmenü steht unter dem Konto-Feld ein kurzer Hinweis (Open Source, AT Protocol, wisp.place) mit Links.
 Text: `menu.about*` in `src/i18n/de.properties`, Link-Ziele: `CONFIG.about` in `src/config.ts` (leer lassen, um einen Link zu entfernen).
+
+## Lizenz
+
+[MIT](LICENSE) – frei nutz-, änder- und weiterverbreitbar. Lexikon-Schemas (`lexicons/`) und Code stehen unter derselben Lizenz.
