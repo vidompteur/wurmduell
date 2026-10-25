@@ -877,3 +877,24 @@ input[type="checkbox"] {
     padding: 8px 6px;
   }
 }
+
+.about {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.about p {
+  margin: 4px 0;
+}
+
+.about a {
+  color: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.about a:hover,
+.about a:focus-visible {
+  text-decoration: underline solid;
+}

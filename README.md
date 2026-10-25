@@ -348,3 +348,8 @@ npm run deploy
 ```
 
 Danach ist dein aktueller Stand unter `https://sites.wisp.place/deinname.bsky.social/wurmduell/` verfügbar.
+
+## Open-Source-Hinweis
+
+Im Hauptmenü steht unter dem Konto-Feld ein kurzer Hinweis (Open Source, AT Protocol, wisp.place) mit Links.
+Text: `menu.about*` in `src/i18n/de.properties`, Link-Ziele: `CONFIG.about` in `src/config.ts` (leer lassen, um einen Link zu entfernen).

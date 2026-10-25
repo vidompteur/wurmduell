@@ -23,6 +23,31 @@ const LOGO = `<svg viewBox="0 0 220 110" width="220" height="110" role="img" ari
   <rect x="196" y="78" width="34" height="9" rx="2" fill="#4b5a45" transform="rotate(-20 196 78)"/>
 </svg>`;
 
+/** Link auf eine feste https-Adresse (neuer Tab, ohne Verbindung zum Spiel); ohne gültige Adresse entfällt er. */
+function link(text: string, url: string): HTMLElement | null {
+  if (!url.startsWith("https://")) return null;
+  const a = h("a", { text });
+  a.setAttribute("href", url);
+  a.setAttribute("target", "_blank");
+  a.setAttribute("rel", "noopener noreferrer");
+  return a;
+}
+
+function aboutBox(): HTMLElement {
+  const links = [
+    link(t("menu.about.source"), CONFIG.about.sourceUrl),
+    link(t("menu.about.atproto"), CONFIG.about.atprotoUrl),
+    link(t("menu.about.host"), CONFIG.about.hostUrl),
+  ].filter((a): a is HTMLElement => a !== null);
+  const box = h("div", { class: "about" }, h("p", { class: "muted small", text: t("menu.about") }));
+  if (links.length > 0) {
+    const row = h("p", { class: "muted small about-links" });
+    links.forEach((a, i) => row.append(...(i > 0 ? [" · ", a] : [a])));
+    box.append(row);
+  }
+  return box;
+}
+
 export function renderMenu(root: HTMLElement, nav: MenuNav, account: Account): () => void {
   const accountBox = createAccountBox(account);
   const logo = h("div", { class: "logo" });
@@ -45,6 +70,7 @@ export function renderMenu(root: HTMLElement, nav: MenuNav, account: Account): (
         btn(t("menu.settings"), nav.settings),
       ),
       accountBox.el,
+      aboutBox(),
     ),
   );
   return () => {

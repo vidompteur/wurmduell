@@ -72,6 +72,12 @@ export const CONFIG = {
      */
     profileUrlByDomain: { "eurosky.social": "https://mu.social/profile/{id}" } as Record<string, string>,
   },
+  about: {
+    /** Links im Hinweis „Open Source“ im Hauptmenü; leer = Link entfällt. */
+    sourceUrl: "https://github.com/vidompteur/wurmduell" as string,
+    atprotoUrl: "https://atproto.com" as string,
+    hostUrl: "https://wisp.place" as string,
+  },
   ladder: {
     /**
      * Aktuelle globale Rangliste direkt aus dem Repository (vom stündlichen Workflow gepflegt), damit sie
