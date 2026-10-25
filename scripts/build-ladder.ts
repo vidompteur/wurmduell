@@ -36,6 +36,11 @@ const { entries, report } = await buildGlobalEntries({ players, blocked, previou
 for (const line of report) console.log(`${line.status.padEnd(11)} ${line.input}${line.did ? ` (${line.did})` : ""} – ${line.message}`);
 
 const failed = report.filter((l) => l.status === "error").length;
+// Nur hart scheitern, wenn gar nichts geladen werden konnte, obwohl Spieler eingetragen sind – und dann nichts überschreiben.
+if (players.length > 0 && failed === players.length) {
+  console.error("Alle Spieler fehlgeschlagen (Netzwerk?). ladder.json bleibt unverändert.");
+  process.exit(1);
+}
 const unchanged = JSON.stringify(entries) === JSON.stringify(previous.entries);
 if (unchanged && existsSync(ladderPath)) {
   console.log("Keine Änderungen, ladder.json bleibt unverändert.");
@@ -43,9 +48,4 @@ if (unchanged && existsSync(ladderPath)) {
   const file = { version: 1, updatedAt: new Date().toISOString(), entries };
   writeFileSync(ladderPath, `${JSON.stringify(file, null, 2)}\n`);
   console.log(`ladder.json geschrieben: ${entries.length} Spieler.`);
-}
-// Nur hart scheitern, wenn gar nichts geladen werden konnte, obwohl Spieler eingetragen sind.
-if (players.length > 0 && failed === players.length) {
-  console.error("Alle Spieler fehlgeschlagen (Netzwerk?).");
-  process.exit(1);
 }

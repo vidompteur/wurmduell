@@ -187,10 +187,14 @@ export async function buildGlobalEntries(opts: BuildOptions): Promise<{ entries:
       entries.set(did, { ...entry, handle: shown });
       report.push({ input, did, status: "ok", message: `${entry.matches} Matches, ${entry.wins} Siege` });
     } catch (error) {
-      const old = did ? previous.entries.find((e) => e.playerId === did) : undefined;
-      if (old && did) {
-        entries.set(did, old);
-        report.push({ input, did, status: "stale", message: `${(error as Error).message}; alter Stand bleibt` });
+      // Auch wenn der Handle gar nicht aufgelöst werden konnte (z. B. Netzwerkausfall), bleibt der alte Eintrag erhalten.
+      const key = input.toLowerCase();
+      const old = previous.entries.find(
+        (e) => (did !== undefined && e.playerId === did) || e.playerId.toLowerCase() === key || e.name.toLowerCase() === key || e.handle?.toLowerCase() === key,
+      );
+      if (old) {
+        entries.set(old.playerId, old);
+        report.push({ input, did: did ?? old.playerId, status: "stale", message: `${(error as Error).message}; alter Stand bleibt` });
       } else {
         report.push({ input, did, status: "error", message: (error as Error).message });
       }

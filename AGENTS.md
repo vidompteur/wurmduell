@@ -25,6 +25,7 @@ Rundenbasiertes 2D-Artillery-Spiel (Worms-artig) als statische TypeScript-SPA: V
 - **UI-Texte** nur in `src/i18n/de.properties` (Deutsch, Referenz) und `src/i18n/en.properties` (Englisch), immer beide pflegen; Zugriff über `t("schluessel", { param })`. Keine Texte im Code. Zahlen/Datum mit `locale()` formatieren. `tests/i18n.test.ts` prüft, dass beide Dateien dieselben Schlüssel und Platzhalter haben.
 - **Standardwerte und URLs** zentral in `src/config.ts`, nicht verstreut im Code. Regel-/Physikkonstanten in `src/game/constants.ts` und `src/weapons/weapons.ts`.
 - **Spiellogik** (`src/game/`, `src/entities/`, `src/weapons/`, `src/ai/`, `src/terrain/`) ist DOM-frei und deterministisch (Seed-RNG in `src/game/rng.ts`), damit sie testbar bleibt. Der Bot nutzt dieselbe Physik wie das Spiel.
+- **Node-Code ohne UI-Imports:** `scripts/build-ladder.ts` läuft unter Node/tsx (kein Vite). Alles, was es lädt (`src/ladder/globalLadder.ts`, `LadderStore.ts`, `src/atproto/records.ts`), darf weder `../i18n` noch Vite-Imports (`?raw`, `.css`, `.properties`) verwenden. Ein Test in `tests/globalLadder.test.ts` prüft das.
 - TypeScript strict; keine `any`-Abkürzungen, keine neuen Abhängigkeiten ohne Grund.
 - Keine Original-Worms-Assets, -Sounds oder -Branding.
 - Neue Anzeigeoptionen und Konfigurationsschlüssel in der README (Kapitel „Standardwerte konfigurieren“) nachtragen.

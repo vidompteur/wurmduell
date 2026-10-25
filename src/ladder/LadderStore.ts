@@ -1,4 +1,3 @@
-import { locale } from "../i18n";
 import type { Ladder, LadderEntry, MatchResult, TeamStats } from "../types";
 
 export const LADDER_KEY = "wurmduell.ladder.v1";
@@ -39,14 +38,18 @@ export function winRate(e: Pick<LadderEntry, "wins" | "matches">): number {
   return e.matches === 0 ? 0 : e.wins / e.matches;
 }
 
-/** Standard-Sortierung: Siege, Zielgenauigkeit, Schaden (alle absteigend), dann Name. */
+/**
+ * Standard-Sortierung: Siege, Zielgenauigkeit, Schaden (alle absteigend), dann Name.
+ * Reine Logik ohne UI-Texte: Sie läuft auch im Ladder-Skript unter Node (`npm run ladder:build`) und darf
+ * nichts aus `../i18n` importieren (das lädt `.properties` per Vite-Import). Feste Sortierung in allen Sprachen.
+ */
 export function sortEntries(entries: readonly LadderEntry[]): LadderEntry[] {
   return entries.slice().sort((a, b) => {
     if (b.wins !== a.wins) return b.wins - a.wins;
     const acc = accuracy(b) - accuracy(a);
     if (acc !== 0) return acc;
     if (b.damageDealt !== a.damageDealt) return b.damageDealt - a.damageDealt;
-    return a.name.localeCompare(b.name, locale());
+    return a.name.localeCompare(b.name, "de");
   });
 }
 

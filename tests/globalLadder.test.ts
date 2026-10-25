@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import ladderStoreSource from "../src/ladder/LadderStore.ts?raw";
+import globalLadderSource from "../src/ladder/globalLadder.ts?raw";
+import recordsSource from "../src/atproto/records.ts?raw";
 import { EMPTY_GLOBAL_LADDER, type FetchLike, buildGlobalEntries, discoverPlayers, isPlausible, newestLadder, parseGlobalLadder } from "../src/ladder/globalLadder";
 
 const summary = (over: Record<string, unknown> = {}) => ({
@@ -65,6 +68,19 @@ describe("Globale Ladder", () => {
     expect(second.report[0]!.status).toBe("stale");
   });
 
+  it("behält den alten Stand auch, wenn der Handle selbst nicht aufgelöst werden kann (Netzwerkausfall)", async () => {
+    const good = fakeNet([{ did: "did:plc:a", handle: "anna.test", value: summary() }]);
+    const first = await buildGlobalEntries({ players: ["anna.test"], previous: EMPTY_GLOBAL_LADDER, fetchFn: good });
+    const offline: FetchLike = () => Promise.reject(new Error("fetch failed"));
+    const second = await buildGlobalEntries({
+      players: ["anna.test"],
+      previous: { version: 1, updatedAt: "x", entries: first.entries },
+      fetchFn: offline,
+    });
+    expect(second.entries).toHaveLength(1);
+    expect(second.report[0]!.status).toBe("stale");
+  });
+
   it("meldet nicht auflösbare Handles als Fehler statt abzustürzen", async () => {
     const { entries, report } = await buildGlobalEntries({ players: ["gibt.es.nicht"], previous: EMPTY_GLOBAL_LADDER, fetchFn: fakeNet([]) });
     expect(entries).toHaveLength(0);
@@ -120,5 +136,16 @@ describe("Globale Ladder", () => {
     expect(newestLadder(null, old)).toBe(old);
     expect(newestLadder(null, null)).toBe(null);
     expect(newestLadder({ ...old, updatedAt: null }, old)).toBe(old);
+  });
+});
+
+describe("Ladder-Skript unter Node", () => {
+  it("die vom Skript genutzten Module importieren keine UI-Texte (.properties lädt nur Vite)", () => {
+    // `npm run ladder:build` läuft mit tsx/Node, das .properties nicht laden kann.
+    for (const [name, source] of Object.entries({ LadderStore: ladderStoreSource, globalLadder: globalLadderSource, records: recordsSource })) {
+      const imports = source.split("\n").filter((l) => /^\s*import\b/.test(l));
+      const bad = imports.filter((l) => /i18n|\.properties/.test(l));
+      expect({ name, bad }).toEqual({ name, bad: [] });
+    }
   });
 });
