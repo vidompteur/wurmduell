@@ -2,6 +2,13 @@
 
 Rundenbasiertes 2D-Artillery-Spiel (Worms-artig) als statische TypeScript-SPA: Vite 7, strict TypeScript, Canvas 2D, Vitest, kein Framework (DOM über `h()` in `src/ui/dom.ts`). Optionale Anmeldung per ATProto-OAuth, Veröffentlichung auf wisp.place. Open Source (MIT).
 
+## Arbeitsweise
+
+- Kleine, überprüfbare Schritte; nur Dateien ändern, die für die Aufgabe relevant sind.
+- Vor Dateiänderungen gezielt suchen (`grep` oder die Such-Tools des Agents), keine breiten `find`-Aufrufe.
+- Vor Änderungen `git status` und `git diff` prüfen, nach Änderungen den Diff zeigen und committen.
+- Keine Force-Pushes, keine History-Rewrites, kein `git clean`.
+
 ## Befehle
 
 - `npm ci` (oder `npm install`): Abhängigkeiten
