@@ -168,6 +168,11 @@ npm run deploy
 | Login: „invalid scope“ oder falsche Redirect-URL | `public/client-metadata.json` und `atproto.appUrl` prüfen |
 | Änderungen erscheinen nicht online | Browser-Cache leeren, `npm run build` und erneut deployen |
 
+## Weitere Dokumente
+
+- [`docs/spec.md`](docs/spec.md): ursprüngliche Spezifikation des Spiels
+- [`docs/wisp-place.md`](docs/wisp-place.md): Notizen zur `wispctl`-CLI
+
 ## Lizenz
 
 [MIT](LICENSE): frei nutz-, änder- und weiterverbreitbar, auch die Lexicons unter `lexicons/`.
