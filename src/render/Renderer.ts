@@ -6,6 +6,7 @@ import type { GameEvent } from "../game/GameState";
 import type { Projectile } from "../entities/Projectile";
 import type { Worm } from "../entities/Worm";
 import { Camera } from "./Camera";
+import { QualityMonitor } from "./quality";
 
 export const TEAM_COLORS = ["#ff5d6c", "#4db2ff"] as const;
 export const TEAM_DARK = ["#a3243a", "#1e5fa8"] as const;
@@ -58,6 +59,9 @@ export class Renderer {
   private time = 0;
   /** Canvas-Pixel pro CSS-Pixel (Retina = 2). */
   dpr = 1;
+  /** Aktuelle Obergrenze der Pixeldichte; sinkt bei zu geringer Bildrate (siehe QualityMonitor). */
+  private dprCap: number = CONFIG.view.maxDpr;
+  private readonly quality = new QualityMonitor();
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -70,7 +74,7 @@ export class Renderer {
 
   /** Passt die Canvas-Auflösung an die Anzeigegröße an. */
   resize(): void {
-    const dpr = Math.min(CONFIG.view.maxDpr, window.devicePixelRatio || 1);
+    const dpr = Math.min(this.dprCap, window.devicePixelRatio || 1);
     this.dpr = dpr;
     this.camera.maxZoom = 4 * dpr;
     const w = Math.max(1, Math.round(this.canvas.clientWidth * dpr));
@@ -80,6 +84,17 @@ export class Renderer {
       this.canvas.height = h;
     }
     this.camera.resize(w, h);
+  }
+
+  /** Beobachtet die Bildrate und senkt bei Bedarf die Auflösung; die sichtbare Größe bleibt gleich. */
+  adaptQuality(frameDt: number): void {
+    if (!CONFIG.view.adaptiveQuality) return;
+    const next = this.quality.push(frameDt, this.dpr);
+    if (next === null) return;
+    const before = this.dpr;
+    this.dprCap = next;
+    this.resize();
+    if (this.dpr !== before) this.camera.zoom = Math.max(this.camera.minZoom, (this.camera.zoom * this.dpr) / before);
   }
 
   // --------------------------------------------------------------- Ereignisse
@@ -203,7 +218,7 @@ export class Renderer {
 
     this.drawWaterBack();
     const tc = this.game.terrain.canvas;
-    if (tc) ctx.drawImage(tc, 0, 0);
+    if (tc) this.drawTerrain(tc);
     for (const worm of this.game.worms) if (worm.grave) this.drawGrave(worm);
     for (const worm of this.game.worms) if (worm.alive) this.drawWorm(worm);
     for (const p of this.game.projectiles) this.drawProjectile(p);
@@ -213,6 +228,18 @@ export class Renderer {
     this.drawAim();
     ctx.restore();
     this.drawTexts();
+  }
+
+  /** Zeichnet nur den sichtbaren Ausschnitt der großen Gelände-Bitmap. */
+  private drawTerrain(tc: HTMLCanvasElement): void {
+    const { camera } = this;
+    const margin = 24 + this.shake;
+    const x0 = Math.max(0, Math.floor(camera.x - camera.viewW / (2 * camera.zoom) - margin));
+    const y0 = Math.max(0, Math.floor(camera.y - camera.viewH / (2 * camera.zoom) - margin));
+    const x1 = Math.min(tc.width, Math.ceil(camera.x + camera.viewW / (2 * camera.zoom) + margin));
+    const y1 = Math.min(tc.height, Math.ceil(camera.y + camera.viewH / (2 * camera.zoom) + margin));
+    if (x1 <= x0 || y1 <= y0) return;
+    this.ctx.drawImage(tc, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
   }
 
   private drawSky(w: number, h: number): void {

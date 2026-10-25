@@ -79,7 +79,7 @@ Alle Defaults stehen zentral in [`src/config.ts`](src/config.ts):
 
 | Bereich | Werte |
 |---|---|
-| `view` | Standard-Zoom (`zoomDefault`, aktuell 1,4), Zoom-Min/-Max, Reglerschritt, Zoom-Faktor pro Tastendruck, maximale Pixeldichte |
+| `view` | Standard-Zoom (`zoomDefault`, aktuell 1,4), Zoom-Min/-Max, Reglerschritt, Zoom-Faktor pro Tastendruck, maximale Pixeldichte (`maxDpr`, 1,5), automatische Qualitätsanpassung (`adaptiveQuality`) |
 | `audio` | Ton an/aus, Lautstärke |
 | `hud` | Steuerungs-Legende an/aus, Handy-Hinweis an/aus |
 | `rules` | Teleports pro Team (`teleports`, Standard 1), Bazooka-Reichweite (`bazookaRange`, 1,3× Original) |
@@ -137,6 +137,10 @@ Antwortet der Relay nicht, nutzt das Skript nur `players.json` (steht im Log als
 - Automatisch: Der Workflow `.github/workflows/ladder.yml` läuft stündlich und per „Run workflow". Er committet eine geänderte `ladder.json` auf `main` und veröffentlicht sie auf wisp.place. Dafür im Repository hinterlegen: Variable `WISP_HANDLE` (z. B. `deinname.bsky.social`) und Secret `WISPCTL_APP_PASSWORD` (App-Passwort des Accounts). Fehlen sie, wird nur committet und eine Warnung ausgegeben.
 
 **Hinweise:** Die Summaries schreiben die Spieler selbst und sie lassen sich daher fälschen; das Skript verwirft nur offensichtlich unplausible Werte (z. B. mehr Treffer als Schüsse). Antwortet ein PDS nicht, bleibt der alte Stand des Spielers erhalten. GitHub pausiert geplante Workflows in Repositories ohne Aktivität nach 60 Tagen.
+
+## Leistung
+
+Auf Retina-Displays ohne starke Grafikkarte (z. B. MacBook Air) hängt die Bildrate vor allem an der Anzahl gezeichneter Pixel. Deshalb rendert das Spiel höchstens mit 1,5 Pixeln pro CSS-Pixel (`view.maxDpr`) und senkt die Auflösung automatisch bis auf 1, wenn die Bildrate unter ca. 45 Bilder/s fällt (`view.adaptiveQuality`, Code in `src/render/quality.ts`). Die Größe der Würmer ändert sich dabei nicht, das Bild wird nur etwas weicher. Das Gelände wird nur im sichtbaren Ausschnitt gezeichnet.
 
 ## Sprachen und Texte
 

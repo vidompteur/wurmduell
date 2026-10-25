@@ -19,7 +19,9 @@ export const CONFIG = {
     /** Faktor pro Tastendruck (+ / −) im Spiel. */
     zoomKeyFactor: 1.15,
     /** Obergrenze für die Pixeldichte, damit Retina/4K nicht unnötig viel rendert. */
-    maxDpr: 2,
+    maxDpr: 1.5,
+    /** Auflösung bei zu niedriger Bildrate automatisch senken (bis 1 Pixel pro CSS-Pixel). */
+    adaptiveQuality: true,
   },
   audio: {
     enabled: true,

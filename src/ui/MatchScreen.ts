@@ -176,6 +176,7 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
   };
 
   const render = (frameDt: number): void => {
+    renderer.adaptQuality(frameDt);
     renderer.updateEffects(frameDt);
     const f = renderer.focusPoint();
     renderer.camera.follow(f.x, f.y, frameDt);
