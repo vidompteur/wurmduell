@@ -38,6 +38,9 @@ export class Projectile {
   readonly ownerTeam: number;
   readonly ownerWorm: number;
   x: number;
+  /** Position zu Beginn des letzten Ticks (nur für die interpolierte Darstellung). */
+  px = Number.NaN;
+  py = Number.NaN;
   y: number;
   vx: number;
   vy: number;

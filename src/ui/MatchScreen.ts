@@ -181,13 +181,13 @@ export function showMatch(root: HTMLElement, opts: MatchScreenOptions): MatchHan
     if (perf) updateMs += performance.now() - t0;
   };
 
-  const render = (frameDt: number): void => {
+  const render = (frameDt: number, alpha: number): void => {
     const t0 = perf ? performance.now() : 0;
     renderer.adaptQuality(frameDt);
     renderer.updateEffects(frameDt);
     const f = renderer.focusPoint();
     renderer.camera.follow(f.x, f.y, frameDt);
-    renderer.render();
+    renderer.render(alpha);
     hud.update();
     if (perf) {
       perf.frame(frameDt * 1000, updateMs, performance.now() - t0, canvas, renderer.dpr);

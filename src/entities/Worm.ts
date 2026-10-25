@@ -49,6 +49,9 @@ export class Worm {
   readonly team: number;
   readonly name: string;
   x: number;
+  /** Position zu Beginn des letzten Ticks (nur für die interpolierte Darstellung). */
+  px = Number.NaN;
+  py = Number.NaN;
   y: number;
   vx = 0;
   vy = 0;

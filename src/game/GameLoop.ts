@@ -13,7 +13,7 @@ export class GameLoop {
 
   constructor(
     private readonly update: (dt: number) => void,
-    private readonly render: (frameDt: number) => void,
+    private readonly render: (frameDt: number, alpha: number) => void,
   ) {}
 
   start(): void {
@@ -44,7 +44,8 @@ export class GameLoop {
       }
       if (steps === 12) this.acc = 0;
     }
-    this.render(frameDt);
+    // Anteil des nächsten, noch nicht berechneten Ticks: das Rendering interpoliert damit zwischen den Ticks (50/s), sonst ruckelt es auf 60-Hz-Displays.
+    this.render(frameDt, this.paused ? 1 : this.acc / DT);
     this.raf = requestAnimationFrame(this.frame);
   };
 }

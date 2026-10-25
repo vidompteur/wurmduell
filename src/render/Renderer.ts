@@ -212,7 +212,38 @@ export class Renderer {
 
   // ------------------------------------------------------------------ Zeichnen
 
-  render(): void {
+  /** Setzt Würmer und Projektile auf ihre interpolierte Position; liefert die Rücknahme. */
+  private interpolate(alpha: number): () => void {
+    const saved: { e: { x: number; y: number }; x: number; y: number }[] = [];
+    const a = Math.min(1, Math.max(0, alpha));
+    const apply = (e: { x: number; y: number; px: number; py: number }): void => {
+      if (Number.isNaN(e.px) || Number.isNaN(e.py)) return;
+      // Sprünge (Teleport, neu erschienen) nicht verschmieren.
+      if (Math.abs(e.x - e.px) > 40 || Math.abs(e.y - e.py) > 40) return;
+      saved.push({ e, x: e.x, y: e.y });
+      e.x = e.px + (e.x - e.px) * a;
+      e.y = e.py + (e.y - e.py) * a;
+    };
+    for (const w of this.game.worms) apply(w);
+    for (const p of this.game.projectiles) apply(p);
+    return () => {
+      for (const s of saved) {
+        s.e.x = s.x;
+        s.e.y = s.y;
+      }
+    };
+  }
+
+  render(alpha = 1): void {
+    const restore = this.interpolate(alpha);
+    try {
+      this.draw();
+    } finally {
+      restore();
+    }
+  }
+
+  private draw(): void {
     const { ctx, canvas, camera } = this;
     const w = canvas.width;
     const h = canvas.height;

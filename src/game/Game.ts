@@ -210,11 +210,13 @@ export class Game {
   /** Ein fester Simulationsschritt. */
   tick(dt: number): void {
     if (this.over) {
+      this.rememberPositions();
       this.stepPhysics(dt);
       return;
     }
     this.time += dt;
     this.shotCooldown = Math.max(0, this.shotCooldown - dt);
+    this.rememberPositions();
     this.stepPhysics(dt);
     if (this.over) return;
 
@@ -380,6 +382,18 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- Physik
+
+  /** Merkt die Positionen vor dem Tick, damit der Renderer dazwischen interpolieren kann. */
+  private rememberPositions(): void {
+    for (const w of this.worms) {
+      w.px = w.x;
+      w.py = w.y;
+    }
+    for (const p of this.projectiles) {
+      p.px = p.x;
+      p.py = p.y;
+    }
+  }
 
   private stepPhysics(dt: number): void {
     const wind = this.turns.wind;
