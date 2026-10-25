@@ -155,7 +155,7 @@ export function renderLadder(root: HTMLElement, store: LadderStore, opts: Ladder
   root.append(
     h(
       "section",
-      { class: "panel wide" },
+      { class: "panel wide ladder" },
       h("h2", { text: t("ladder.title") }),
       h("div", { class: "tabs" }, tabs.local, tabs.global),
       intro,
