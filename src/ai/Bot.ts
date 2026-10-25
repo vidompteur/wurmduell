@@ -24,8 +24,6 @@ export interface LevelParams {
   /** Chance, bei schlechter Lage Teleport zu nutzen. */
   teleportChance: number;
   thinkDelay: [number, number];
-  /** Abbruch der Planung nach so vielen Millisekunden. */
-  budgetMs: number;
 }
 
 export const LEVELS: Record<AiLevel, LevelParams> = {
@@ -39,7 +37,6 @@ export const LEVELS: Record<AiLevel, LevelParams> = {
     threshold: 6,
     teleportChance: 0.2,
     thinkDelay: [0.9, 1.7],
-    budgetMs: 400,
   },
   normal: {
     samples: 90,
@@ -51,7 +48,6 @@ export const LEVELS: Record<AiLevel, LevelParams> = {
     threshold: 11,
     teleportChance: 0.5,
     thinkDelay: [0.7, 1.3],
-    budgetMs: 900,
   },
   hard: {
     samples: 220,
@@ -63,7 +59,6 @@ export const LEVELS: Record<AiLevel, LevelParams> = {
     threshold: 16,
     teleportChance: 0.8,
     thinkDelay: [0.5, 1.0],
-    budgetMs: 1200,
   },
 };
 
@@ -71,7 +66,10 @@ interface Plan extends SimShot {
   score: number;
 }
 
-type BotState = "delay" | "walk" | "turn-around" | "aim" | "charge" | "settle" | "done";
+type BotState = "delay" | "plan" | "walk" | "turn-around" | "aim" | "charge" | "settle" | "done";
+
+/** So viele Schuss-Simulationen pro Tick: Die Planung verteilt sich auf viele Bilder statt das Spiel anzuhalten. */
+const SIMS_PER_TICK = 8;
 
 /**
  * KI-Gegner. Erzeugt pro Tick denselben `InputState` wie ein Mensch:
@@ -87,6 +85,9 @@ export class Bot {
   private walkDir: -1 | 1 = 1;
   private walkTicks = 0;
   private teleported = false;
+  /** Laufende, schrittweise Schussplanung und ihr fertiges Ergebnis. */
+  private gen: Generator<void, Plan> | null = null;
+  private ready: Plan | null = null;
 
   constructor(
     level: AiLevel,
@@ -104,8 +105,14 @@ export class Bot {
 
     switch (this.state) {
       case "delay":
+        // Die Planung läuft schon während der „Denkpause“; nach deren Ende liegt meist alles bereit.
         this.timer -= DT;
-        if (this.timer <= 0) this.decide(game);
+        if (!this.ready) this.advancePlan(game);
+        if (this.timer <= 0 && this.ready) this.decide(game);
+        return IDLE_INPUT;
+
+      case "plan":
+        if (this.advancePlan(game)) this.decide(game);
         return IDLE_INPUT;
 
       case "walk": {
@@ -119,7 +126,11 @@ export class Bot {
 
       case "settle":
         this.timer -= DT;
-        if (this.timer <= 0) this.decide(game);
+        if (this.timer <= 0) {
+          this.ready = null;
+          this.gen = null;
+          this.state = "plan";
+        }
         return IDLE_INPUT;
 
       case "turn-around": {
@@ -160,13 +171,16 @@ export class Bot {
     this.state = "delay";
     this.timer = randRange(this.rng, ...this.params.thinkDelay);
     this.plan = null;
+    this.gen = null;
+    this.ready = null;
     this.roundsLeft = this.params.repositionRounds;
     this.teleported = false;
   }
 
   /** Nach Wartezeit oder Positionswechsel: Schuss planen, sonst Position verbessern. */
   private decide(game: Game): void {
-    const plan = this.planShot(game);
+    const plan = this.ready!;
+    this.ready = null;
     this.plan = plan;
     const enemies = game.enemiesOf(game.activeTeam.index);
     if (enemies.length === 0) {
@@ -251,8 +265,22 @@ export class Bot {
       .map((w) => ({ id: w.id, team: w.team, x: w.centerX, y: w.centerY }));
   }
 
-  /** Simuliert viele Schüsse und gibt den besten zurück. */
-  private planShot(game: Game): Plan {
+  /** Rechnet einige Simulationen weiter; liefert true, sobald die Planung fertig ist (Ergebnis in `ready`). */
+  private advancePlan(game: Game): boolean {
+    this.gen ??= this.planShotSteps(game);
+    for (let i = 0; i < SIMS_PER_TICK; i++) {
+      const r = this.gen.next();
+      if (r.done) {
+        this.ready = r.value;
+        this.gen = null;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Simuliert viele Schüsse (nach jeder Simulation wird abgegeben) und gibt den besten zurück. */
+  private *planShotSteps(game: Game): Generator<void, Plan> {
     const worm = game.activeWorm;
     const def = WEAPONS.bazooka;
     const targets = this.snapshotTargets(game);
@@ -264,7 +292,6 @@ export class Bot {
     const nearWater = worm.y > DROWN_Y - 140;
     const origin = { x: worm.centerX, y: worm.centerY };
     const wind = game.wind;
-    const deadline = performance.now() + this.params.budgetMs;
 
     const results: Plan[] = [];
     const evaluate = (shot: SimShot): Plan => {
@@ -280,24 +307,24 @@ export class Bot {
     }
 
     for (let i = 0; i < this.params.samples; i++) {
-      if (performance.now() > deadline) break;
       const enemy = enemies[i % enemies.length]!;
       const facing: 1 | -1 = enemy.x >= me.x ? 1 : -1;
       const angle = randRange(this.rng, 6, 80);
       const power = guessPower(def.maxSpeed, def.minSpeedFraction, Math.abs(enemy.x - me.x), me.y - enemy.y, angle, this.rng);
       evaluate({ facing, angle, power });
+      yield;
     }
 
     for (let round = 0; round < this.params.refineRounds && results.length > 0; round++) {
       const best = bestOf(results);
       const spread = round === 0 ? 1 : 0.4;
       for (let i = 0; i < 40; i++) {
-        if (performance.now() > deadline) break;
         evaluate({
           facing: best.facing,
           angle: clamp(best.angle + gaussish(this.rng) * 3 * spread, 2, 85),
           power: clamp(best.power + gaussish(this.rng) * 0.06 * spread, 0.05, 1),
         });
+        yield;
       }
     }
 
